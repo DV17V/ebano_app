@@ -1,0 +1,716 @@
+/* ================================================
+   ESTILOS GENERALES - ÉBANO
+   Elegante y artesanal
+   ================================================ */
+
+:root {
+    --vino-oscuro: #4b1e24;
+    --vino-medio: #6b2d34;
+    --vino-claro: #a05c44;
+    --dorado: #d4af37;
+    --gris-suave: #f5f5f5;
+    --fuente-principal: 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+    font-family: var(--fuente-principal);
+    background-color: var(--gris-suave);
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* --------------------------------
+   ENCABEZADO Y NAVEGACIÓN
+----------------------------------- */
+
+header {
+    background-color: var(--vino-oscuro);
+    color: white;
+    padding: 15px 0;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+header h1 {
+    margin: 0;
+    font-weight: 500;
+    letter-spacing: 2px;
+}
+
+nav {
+    background-color: var(--vino-medio);
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px 0;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+nav a:hover {
+    color: var(--dorado);
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+    color: #7c1823;
+}
+
+/* ===========================
+   TIENDA - CATÁLOGO ÉBANO
+=========================== */
+
+.tienda {
+    padding: 4rem 2rem;
+    background-color: #f5f2ef;
+}
+
+.titulo-tienda {
+    text-align: center;
+    color: #3b1b14;
+    font-size: 2.2rem;
+    margin-bottom: 2.5rem;
+    font-family: 'Georgia', serif;
+    border-bottom: 2px solid #7c1823;
+    display: inline-block;
+    padding-bottom: 0.3rem;
+}
+
+.productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
+    justify-items: center;
+}
+
+.producto-card {
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.199);
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.producto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+.producto-card img {
+    width: 90%;
+    height: 320px; /* altura fija para las tarjetas, asegura consistencia */
+    object-fit: cover; /* mostrar la imagen completa sin recortar */
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.producto-card h2 {
+    color: #7c1823;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.descripcion {
+    color: #5a4a44;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+.precio {
+    color: #7c1823;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.precio span {
+    font-size: 1.2rem;
+}
+
+.stock {
+    color: #3b1b14;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.boton {
+    display: inline-block;
+    background-color: #7c1823;
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0.3rem;
+    transition: background-color 0.3s ease;
+}
+
+.boton:hover {
+    background-color: #5a0f18;
+}
+
+.boton.comprar {
+    background-color: #3b1b14;
+}
+
+.boton.comprar:hover {
+    background-color: #2a0e09;
+}
+
+.aviso {
+    color: #b52d35;
+    font-style: italic;
+    font-size: 0.95rem;
+}
+
+/* --------------------------------
+   PIE DE PÁGINA
+----------------------------------- */
+
+footer {
+    background-color: var(--vino-oscuro);
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 14px;
+    margin-top: 40px;
+}
+
+/* --------------------------------
+   PORTADA / INDEX
+----------------------------------- */
+.hero {
+    background: linear-gradient(to bottom right, rgba(75,30,36,0.8), rgba(160,92,68,0.85)), url("../img/hero-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding: 140px 20px;
+    text-align: center;
+    border-radius: 0 0 30px 30px;
+}
+
+.hero-texto {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.hero-texto h2 {
+    font-size: 38px;
+    margin-bottom: 10px;
+}
+
+.hero-texto p {
+    font-size: 18px;
+    margin-bottom: 25px;
+}
+
+.botones-hero {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.boton-secundario {
+    display: inline-block;
+    background-color: transparent;
+    border: 2px solid var(--dorado);
+    color: var(--dorado);
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.boton-secundario:hover {
+    background-color: var(--dorado);
+    color: var(--vino-oscuro);
+}
+
+.intro {
+    padding: 60px 40px;
+    text-align: center;
+}
+
+.texto-intro {
+    color: #555;
+    font-size: 17px;
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* --------------------------------
+   PÁGINA DE ERROR 404
+----------------------------------- */
+.error-404 {
+    text-align: center;
+    padding: 100px 20px;
+}
+
+.error-404 h2 {
+    color: var(--vino-oscuro);
+    margin-bottom: 10px;
+}
+
+.error-404 p {
+    color: #555;
+    margin-bottom: 20px;
+}
+
+
+/* --------------------------------
+   FORMULARIOS (Login / Registro)
+----------------------------------- */
+.form-container {
+    max-width: 400px;
+    margin: 60px auto;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.form-container h2 {
+    text-align: center;
+    color: var(--vino-oscuro);
+    margin-bottom: 20px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+.form-container label {
+    color: var(--vino-medio);
+    font-weight: 600;
+}
+
+.form-container p {
+    text-align: center;
+    margin-top: 15px;
+}
+
+/* ===========================
+   DETALLE DE PRODUCTO - ÉBANO
+=========================== */
+.producto-detalle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4rem 2rem;
+    background-color: #f5f2ef;
+}
+
+.producto-container {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 1100px;
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.producto-imagen {
+    flex: 1 1 400px;
+    min-width: 300px;
+    max-width: 500px;
+    background-color: #f9f9f900;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem;
+    min-height: 320px; /* aporta espacio para mostrar la imagen completa */
+}
+
+.producto-imagen img {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    object-fit: contain; /* muestra la imagen completa y centrada */
+    border-radius: 12px;
+    background-color: #f9f9f900;
+    display: block;
+}
+
+.producto-info {
+    flex: 1 1 400px;
+    padding: 2rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.producto-nombre {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #3b1b14;
+    margin-bottom: 1rem;
+}
+
+.producto-descripcion {
+    font-size: 1.1rem;
+    color: #5a4a44;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.producto-precio {
+    font-size: 1.3rem;
+    color: #7c1823;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+}
+
+.producto-precio span {
+    font-size: 1.6rem;
+}
+
+.aviso-precio {
+    font-size: 1rem;
+    color: #b52d35;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+}
+
+.boton-comprar,
+.boton-volver {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    background-color: #7c1823;
+    color: #fff;
+    text-decoration: none;
+    text-align: center;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.boton-comprar:hover,
+.boton-volver:hover {
+    background-color: #5a0f18;
+}
+
+.boton-volver {
+    margin-top: 1.2rem;
+    background-color: #3b1b14;
+}
+
+/* ===========================
+   DASHBOARD CLIENTE - ÉBANO
+=========================== */
+
+.dashboard-usuario {
+    background: linear-gradient(to bottom right, #f5f2ef, #e9e1d8);
+    min-height: 100vh;
+    padding: 3rem 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    width: 100%;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    padding: 2.5rem 3rem;
+    text-align: center;
+}
+
+.titulo-dashboard {
+    font-family: 'Georgia', serif;
+    color: #4b1e15;
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.subtitulo-dashboard {
+    color: #7c1823;
+    margin-bottom: 2.5rem;
+    font-size: 1.1rem;
+    font-style: italic;
+}
+
+.tarjetas-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
+}
+
+.tarjeta-usuario {
+    background-color: #faf6f2;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #d4c1a2;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tarjeta-usuario:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+.tarjeta-usuario img {
+    width: 60px;
+    margin-bottom: 1rem;
+}
+
+.tarjeta-usuario h2 {
+    color: #7c1823;
+    margin-bottom: 0.4rem;
+    font-size: 1.3rem;
+}
+
+.tarjeta-usuario p {
+    color: #5a4a44;
+    font-size: 0.95rem;
+    margin-bottom: 1.2rem;
+}
+
+.boton-usuario {
+    display: inline-block;
+    background-color: #7c1823;
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.boton-usuario:hover {
+    background-color: #5a0f18;
+}
+
+/* ===========================
+   PANEL CLIENTE
+=========================== */
+.panel-cliente {
+    padding: 4rem 2rem;
+    background: #fdf9f6;
+    min-height: 80vh;
+    text-align: center;
+}
+
+.panel-header h2 {
+    color: #4b1e15;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.panel-header p {
+    color: #7a4b3a;
+    font-style: italic;
+    margin-bottom: 2rem;
+}
+
+.info-box {
+    background: #fff;
+    border: 2px solid #d8c2b0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: inline-block;
+    text-align: left;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.info-box p {
+    margin: 0.4rem 0;
+    color: #333;
+}
+
+.placeholder {
+    color: #777;
+    font-style: italic;
+}
+
+.btn-artesanal {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.7rem 1.5rem;
+    background: #7c1823;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+
+.btn-artesanal:hover {
+    background: #a0232f;
+}
+
+/* ===========================
+   RESEÑAS
+=========================== */
+
+.lista-resenas .resena-item {
+    text-align: left;
+    padding: 1rem 0;
+}
+
+.resena-item .meta {
+    color: #777;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.seccion-reseñas {
+    margin-top: 3rem;
+    background-color: #fffdf9;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.seccion-reseñas h2 {
+    color: #5c1f13;
+    font-family: 'Merriweather', serif;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #d4b48c;
+    display: inline-block;
+}
+
+.tarjeta-reseña {
+    border-left: 4px solid #8a4b2c;
+    margin: 1rem 0;
+    padding: 1rem 1.5rem;
+    background-color: #fdf7f2;
+    border-radius: 8px;
+}
+
+.texto-reseña {
+    font-style: italic;
+    color: #442419;
+}
+
+.autor-reseña {
+    text-align: right;
+    color: #70432a;
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+}
+
+.sin-reseñas {
+    color: #b65d3d;
+    font-style: italic;
+    margin-top: 1rem;
+}
+
+
+/* ===========================
+   DASHBOARD ADMINISTRATIVO - ÉBANO
+=========================== */
+
+.dashboard-admin {
+    background: url('../img/madera-textura.jpg') center/cover no-repeat fixed;
+    min-height: 100vh;
+    padding: 3rem 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    padding: 2rem 3rem;
+}
+
+.titulo-dashboard {
+    text-align: center;
+    font-family: 'Georgia', serif;
+    color: #4b1e15;
+    margin-bottom: 2.5rem;
+    font-size: 2.2rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 3px solid #7c1823;
+    display: inline-block;
+    padding-bottom: 0.3rem;
+}
+
+.tarjetas-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 2rem;
+}
+
+.tarjeta-admin {
+    background-color: #faf6f2;
+    border: 2px solid #c2a57c;
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tarjeta-admin:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.tarjeta-admin h2 {
+    color: #7c1823;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.valor {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #3b1b14;
+    margin-bottom: 1rem;
+}
+
+.boton-admin {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    background-color: #7c1823;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.boton-admin:hover {
+    background-color: #5a0f18;
+}

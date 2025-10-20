@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Mi Carrito | Ébano{% endblock %}
+
+{% block content %}
+<section class="carrito">
+    <h1 class="titulo-carrito">Mi Carrito</h1>
+
+    {% if carrito and carrito|length > 0 %}
+        <div class="carrito-items">
+            {% for item in carrito %}
+                <div class="item-carrito">
+                    {% if item.imagen_url %}
+                        <img src="{{ url_for('static', filename=item.imagen_url) }}" alt="{{ item.nombre }}">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/defalult.png') }}" alt="{{ item.nombre }}">
+                    {% endif %}
+                    <div class="info-carrito">
+                        <h2>{{ item.nombre }}</h2>
+                        <p>Precio unitario: ${{ "%.2f"|format(item.precio) }}</p>
+                        <p>Cantidad: {{ item.cantidad }}</p>
+                        <p>Subtotal: ${{ "%.2f"|format(item.precio * item.cantidad) }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="carrito-total">
+            <h3>Total: ${{ "%.2f"|format(total) }}</h3>
+            <a href="{{ url_for('checkout') }}" class="btn-artesanal">Proceder al pago</a>
+            <a href="{{ url_for('vaciar_carrito') }}" class="boton-volver">Vaciar carrito</a>
+            <a href="{{ url_for('tienda') }}" class="boton-volver">← Volver a la tienda</a>
+        </div>
+    {% else %}
+        <p class="carrito-vacio">Tu carrito está vacío.</p>
+    {% endif %}
+
+    
+</section>
+{% endblock %}

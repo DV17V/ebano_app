@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Registro | Ébano{% endblock %}
+
+{% block content %}
+<section class="form-container">
+    <h2>Crear cuenta</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <label for="nombre_completo">Nombre completo</label>
+        {{ form.nombre_completo(class="form-input") }}
+
+        <label for="correo">Correo electrónico</label>
+        {{ form.correo(class="form-input") }}
+
+        <label for="telefono">Teléfono</label>
+        {{ form.telefono(class="form-input") }}
+
+        <label for="direccion">Dirección</label>
+        {{ form.direccion(class="form-input") }}
+
+        <label for="contraseña">Contraseña</label>
+        {{ form.contraseña(class="form-input") }}
+
+        <label for="confirmar">Confirmar contraseña</label>
+        {{ form.confirmar(class="form-input") }}
+
+        {{ form.submit(class="boton") }}
+    </form>
+    <p>¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Inicia sesión</a>.</p>
+</section>
+{% endblock %}

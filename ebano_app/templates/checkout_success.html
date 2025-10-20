@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Compra completada | Ébano{% endblock %}
+
+{% block content %}
+<section class="checkout-success">
+  <div class="success-container">
+    <h1>¡Gracias por tu compra!</h1>
+    <p>Tu pedido ha sido registrado con éxito. Pronto recibirás una notificación.</p>
+    <a href="{{ url_for('tienda') }}" class="btn-artesanal">Volver a la tienda</a>
+    <a href="{{ url_for('historial') }}" class="boton-usuario">Ver historial de pedidos</a>
+  </div>
+</section>
+{% endblock %}

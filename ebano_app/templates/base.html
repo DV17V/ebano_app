@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ébano{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <header>
+        <h1>ÉBANO</h1>
+        <nav>
+  <ul>
+    <li><a href="{{ url_for('index') }}">Inicio</a></li>
+    <li><a href="{{ url_for('tienda') }}">Tienda</a></li>
+
+    {% if current_user.is_authenticated %}
+        {% if current_user.rol == 'cliente' %}
+            <li><a href="{{ url_for('dashboard_usuario') }}">Mi cuenta</a></li>
+        {% elif current_user.rol == 'admin' %}
+            <li><a href="{{ url_for('dashboard_admin') }}">Panel Admin</a></li>
+        {% endif %}
+        <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
+    {% else %}
+        <li><a href="{{ url_for('login') }}">Login</a></li>
+        <li><a href="{{ url_for('registro') }}">Registro</a></li>
+    {% endif %}
+  </ul>
+</nav>
+
+    </header>
+
+    {% block content %}{% endblock %}
+
+    <footer>
+        <p>© 2025 Ébano — Vino artesanal sin alcohol. Todos los derechos reservados.</p>
+    </footer>
+
+</body>
+</html>

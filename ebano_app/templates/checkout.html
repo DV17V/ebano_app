@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Confirmar pedido | Ébano{% endblock %}
+
+{% block content %}
+<section class="checkout">
+  <div class="checkout-container">
+    <h1>Confirmar tu pedido</h1>
+    <p>Revisa los productos antes de finalizar la compra.</p>
+
+    <table class="tabla-checkout">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Precio unitario</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in carrito %}
+        <tr>
+          <td>{{ item.nombre }}</td>
+          <td>{{ item.cantidad }}</td>
+          <td>${{ "%.2f"|format(item.precio) }}</td>
+          <td>${{ "%.2f"|format(item.precio * item.cantidad) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="total-checkout">
+      <h2>Total: ${{ "%.2f"|format(total) }}</h2>
+    </div>
+
+    <form method="POST">
+      <button type="submit" class="btn-artesanal">Confirmar compra</button>
+      <a href="{{ url_for('carrito') }}" class="boton-volver">← Volver al carrito</a>
+    </form>
+  </div>
+</section>
+
+print("Checkout page rendered with total:", session)
+{% endblock %}

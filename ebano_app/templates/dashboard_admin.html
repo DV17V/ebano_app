@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Administrativo | Ébano{% endblock %}
+
+{% block content %}
+<section class="dashboard-admin">
+    <div class="dashboard-container">
+        <center>
+            <h1 class="titulo-dashboard">Panel Administrativo Ébano</h1>
+        </center>
+        
+
+        <div class="tarjetas-dashboard">
+            <div class="tarjeta-admin">
+                <h2>Usuarios</h2>
+                <p class="valor">{{ stats.total_usuarios }}</p>
+                <a href="#" class="boton-admin">Gestionar</a>
+            </div>
+
+            <div class="tarjeta-admin">
+                <h2>Productos</h2>
+                <p class="valor">{{ stats.total_productos }}</p>
+                <a href="#" class="boton-admin">Gestionar</a>
+            </div>
+
+            <div class="tarjeta-admin">
+                <h2>Pedidos</h2>
+                <p class="valor">{{ stats.total_pedidos }}</p>
+                <a href="#" class="boton-admin">Ver pedidos</a>
+            </div>
+
+            <div class="tarjeta-admin">
+                <h2>Reseñas</h2>
+                <p class="valor">{{ stats.reseñas_pendientes }}</p>
+                <a href="#" class="boton-admin">Revisar</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

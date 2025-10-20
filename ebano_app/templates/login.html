@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Iniciar sesión | Ébano{% endblock %}
+
+{% block content %}
+<section class="form-container">
+    <h2>Iniciar sesión</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <label for="correo">Correo electrónico</label>
+        {{ form.correo(class="form-input") }}
+
+        <label for="contraseña">Contraseña</label>
+        {{ form.contraseña(class="form-input") }}
+
+        {{ form.submit(class="boton") }}
+    </form>
+    <p>¿No tienes cuenta? <a href="{{ url_for('registro') }}">Regístrate aquí</a>.</p>
+</section>
+{% endblock %}

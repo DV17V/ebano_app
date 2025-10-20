@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="panel-cliente">
+    <div class="panel-header">
+        <h2>Mi perfil</h2>
+        <p>Gestiona tu información personal y tus datos de contacto.</p>
+    </div>
+
+    <div class="panel-content">
+        <div class="info-box">
+            <p><strong>Nombre:</strong> {{ usuario.nombre_completo }}</p>
+            <p><strong>Correo:</strong> {{ usuario.correo }}</p>
+            <p><strong>Teléfono:</strong> {{ usuario.telefono or "No registrado" }}</p>
+            <p><strong>Dirección:</strong> {{ usuario.direccion or "No registrada" }}</p>
+        </div>
+        <br>
+        <a href="#" class="btn-artesanal">Editar información</a>
+    </div>
+</section>
+
+{% endblock %}

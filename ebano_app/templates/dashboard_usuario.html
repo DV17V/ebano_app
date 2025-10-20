@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Panel | Ébano{% endblock %}
+
+{% block content %}
+<section class="dashboard-usuario">
+    <div class="dashboard-container">
+        <h1 class="titulo-dashboard">Bienvenido, {{ usuario.nombre_completo or usuario.nombre_usuario }}</h1>
+        <p class="subtitulo-dashboard">Tu espacio personal en Ébano</p>
+
+        <div class="tarjetas-dashboard">
+            <div class="tarjeta-usuario">
+                <img src="{{ url_for('static', filename='img/icon-pedidos.png') }}" alt="Pedidos">
+                <h2>Mis pedidos</h2>
+                <p>Revisa tus órdenes activas y el estado de tus compras.</p>
+                <a href="{{ url_for('pedidos') }}" class="boton-usuario">Ver pedidos</a>
+            </div>
+
+            <div class="tarjeta-usuario">
+                <img src="{{ url_for('static', filename='img/icon-historial.png') }}" alt="Historial">
+                <h2>Historial</h2>
+                <p>Consulta tus compras anteriores y vuelve a pedir tus favoritos.</p>
+                <a href="{{ url_for('historial') }}" class="boton-usuario">Ver historial</a>
+            </div>
+
+            <div class="tarjeta-usuario">
+                <img src="{{ url_for('static', filename='img/icon-resenas.png') }}" alt="Reseñas">
+                <h2>Mis reseñas</h2>
+                <p>Deja tu opinión sobre los vinos que has disfrutado.</p>
+                <a href="{{ url_for('resenas') }}" class="boton-usuario">Ver reseñas</a>
+            </div>
+
+            <div class="tarjeta-usuario">
+                <img src="{{ url_for('static', filename='img/icon-perfil.png') }}" alt="Perfil">
+                <h2>Mi perfil</h2>
+                <p>Actualiza tu información personal o cambia tu contraseña.</p>
+                <a href="{{ url_for('perfil') }}" class="boton-usuario">Editar perfil</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

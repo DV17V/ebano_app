@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Bienvenido a Ébano{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-texto">
+        <h2>Vino artesanal sin alcohol, orgullo de Nariño</h2>
+        <p>Descubre el sabor, la historia y la elegancia del vino artesanal colombiano, creado con pasión y sin alcohol.</p>
+        <div class="botones-hero">
+            <a class="boton" href="{{ url_for('tienda') }}">Explorar la tienda</a>
+            <a class="boton-secundario" href="{{ url_for('login') }}">Iniciar sesión</a>
+        </div>
+    </div>
+</section>
+
+<section class="intro">
+    <h2 class="titulo-seccion">Nuestra esencia</h2>
+    <p class="texto-intro">
+        Ébano nace en las tierras altas de Nariño, Colombia, con el propósito de ofrecer una experiencia única: vino sin alcohol, 
+        artesanal y natural, elaborado con moras seleccionadas y el alma del sur. 
+        Nuestra visión: llevar el sabor colombiano a cada rincón del mundo, sin perder la autenticidad.
+    </p>
+</section>
+{% endblock %}

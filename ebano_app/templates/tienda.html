@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Tienda | Ébano{% endblock %}
+
+{% block content %}
+<section class="tienda">
+    <div class="tienda-container">
+        <h1 class="titulo-tienda">Vinos Artesanales Ébano</h1>
+        <div class="productos-grid">
+            {% for p in productos %}
+            <div class="producto-card">
+                {% if p.imagen_url %}
+                    <img src="{{ url_for('static', filename=p.imagen_url) }}" alt="{{ p.nombre }}">
+                {% else %}
+                    <img src="{{ url_for('static', filename='img/defalult.png') }}" alt="{{ p.nombre }}">
+                {% endif %}
+                <h2>{{ p.nombre }}</h2>
+                <p class="descripcion">{{ p.descripcion }}</p>
+
+                {% if mostrar_precios %}
+                    <p class="precio">Precio: <span>${{ "%.3f"|format(p.precio) }}</span></p>
+                    <p class="stock">Stock disponible: {{ p.stock }}</p>
+                    <a class="boton" href="{{ url_for('producto', id=p.id) }}">Ver más</a>
+                    <a class="boton comprar" href="{{ url_for('agregar_carrito', producto_id=p.id) }}">Agregar al carrito</a>
+                {% else %}
+                    <p class="aviso">Inicia sesión para ver precios y comprar.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

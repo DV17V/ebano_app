@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{% if editar %}Editar reseña{% else %}Escribir reseña{% endif %} | Ébano{% endblock %}
+
+{% block content %}
+<section class="panel-cliente">
+  <div class="panel-header">
+    <h2>{% if editar %}Editar reseña{% else %}Escribir reseña{% endif %}</h2>
+    <p>Producto: {{ producto_nombre }}</p>
+  </div>
+
+  <div class="panel-content">
+    <form method="POST">
+      {{ form.hidden_tag() }}
+
+      <label>Comentario</label>
+      {{ form.comentario(class="form-input") }}
+
+      <label>Calificación (1-5)</label>
+      {{ form.calificacion(class="form-input") }}
+
+      {{ form.submit(class="btn-artesanal") }}
+    </form>
+  </div>
+</section>
+{% endblock %}

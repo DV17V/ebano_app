@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Página no encontrada - Ébano{% endblock %}
+
+{% block content %}
+<section class="error-404">
+    <h2>404 — Página no encontrada</h2>
+    <p>Lo sentimos, el recurso que estás buscando no existe o fue movido.</p>
+    <a class="boton" href="{{ url_for('index') }}">Volver al inicio</a>
+</section>
+{% endblock %}

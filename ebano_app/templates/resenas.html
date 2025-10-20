@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Mis reseñas | Ébano{% endblock %}
+
+{% block content %}
+<section class="panel-cliente">
+  <div class="panel-header">
+    <h2>Mis reseñas</h2>
+    <p>Visualiza y administra tus opiniones.</p>
+  </div>
+
+  <div class="panel-content">
+    <a href="{{ url_for('tienda') }}" class="btn-artesanal">Volver a la tienda</a>
+    <a href="{{ url_for('crear_resena', product_id=0) }}" class="btn-artesanal" style="margin-left:10px;">Escribir reseña (desde producto)</a>
+    <hr>
+
+    {% if reseñas %}
+      <div class="lista-resenas">
+        {% for r in reseñas %}
+          <div class="resena-item">
+            <h4>{{ r.producto_nombre }}</h4>
+            <p class="meta">Calificación: {{ r.calificacion }} — {{ r.fecha }}</p>
+            <p>{{ r.comentario }}</p>
+            <a href="{{ url_for('editar_resena', id=r.id) }}" class="btn-artesanal">Editar</a>
+            <form method="POST" action="{{ url_for('borrar_resena', id=r.id) }}" style="display:inline;">
+              <button class="btn-artesanal" style="background:#a0232f; border:none; padding:0.5rem 0.8rem; margin-left:8px;">Eliminar</button>
+            </form>
+          </div>
+          <hr>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="placeholder">No has escrito reseñas todavía.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
