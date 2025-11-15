@@ -5,31 +5,68 @@
 <section class="panel-cliente">
   <div class="panel-header">
     <h2>Mis reseñas</h2>
-    <p>Visualiza y administra tus opiniones.</p>
+    <p>Visualiza y administra tus opiniones sobre nuestros vinos.</p>
   </div>
 
   <div class="panel-content">
-    <a href="{{ url_for('tienda') }}" class="btn-artesanal">Volver a la tienda</a>
-    <a href="{{ url_for('crear_resena', product_id=0) }}" class="btn-artesanal" style="margin-left:10px;">Escribir reseña (desde producto)</a>
-    <hr>
+    <!-- Mensajes flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
 
-    {% if reseñas %}
+    <div class="acciones-resenas">
+      <a href="{{ url_for('tienda') }}" class="btn-artesanal">← Volver a la tienda</a>
+    </div>
+
+    {% if reseñas and reseñas|length > 0 %}
       <div class="lista-resenas">
         {% for r in reseñas %}
           <div class="resena-item">
-            <h4>{{ r.producto_nombre }}</h4>
-            <p class="meta">Calificación: {{ r.calificacion }} — {{ r.fecha }}</p>
-            <p>{{ r.comentario }}</p>
-            <a href="{{ url_for('editar_resena', id=r.id) }}" class="btn-artesanal">Editar</a>
-            <form method="POST" action="{{ url_for('borrar_resena', id=r.id) }}" style="display:inline;">
-              <button class="btn-artesanal" style="background:#a0232f; border:none; padding:0.5rem 0.8rem; margin-left:8px;">Eliminar</button>
-            </form>
+            <div class="resena-header">
+              <h4 class="producto-nombre-resena">{{ r.producto_nombre }}</h4>
+              <span class="fecha-resena">{{ r.fecha.strftime('%d/%m/%Y') if r.fecha else 'Sin fecha' }}</span>
+            </div>
+
+            <div class="resena-calificacion">
+              {% for i in range(r.calificacion|int) %}
+                ⭐
+              {% endfor %}
+              <span class="calificacion-numero">({{ r.calificacion }}/5)</span>
+            </div>
+
+            <p class="resena-comentario">{{ r.comentario }}</p>
+
+            <div class="resena-acciones">
+              <a href="{{ url_for('editar_resena', id=r.id) }}" class="btn-mini editar">
+                ✏️ Editar
+              </a>
+              
+              <form method="POST" action="{{ url_for('borrar_resena', id=r.id) }}" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta reseña? Esta acción no se puede deshacer.');">
+                <button type="submit" class="btn-mini eliminar">
+                  🗑️ Eliminar
+                </button>
+              </form>
+
+              <a href="{{ url_for('producto', id=r.id_producto) }}" class="btn-mini ver-producto">
+                👁️ Ver producto
+              </a>
+            </div>
           </div>
-          <hr>
+          <hr class="separador-resena">
         {% endfor %}
       </div>
     {% else %}
-      <p class="placeholder">No has escrito reseñas todavía.</p>
+      <div class="sin-resenas">
+        <p class="placeholder">No has escrito reseñas todavía.</p>
+        <p>¡Compra uno de nuestros vinos y comparte tu experiencia!</p>
+        <a href="{{ url_for('tienda') }}" class="btn-artesanal">Ir a la tienda</a>
+      </div>
     {% endif %}
   </div>
 </section>

@@ -717,6 +717,217 @@ footer {
     margin-top: 1rem;
 }
 
+/* ===========================
+   SISTEMA DE RESEÑAS - Cliente
+=========================== */
+
+.acciones-resenas {
+    margin-bottom: 2rem;
+}
+
+.lista-resenas {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.resena-item {
+    background-color: #fdf7f2;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #7c1823;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.resena-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.producto-nombre-resena {
+    color: #4b1e15;
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.fecha-resena {
+    color: #7a4b3a;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.resena-calificacion {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.calificacion-numero {
+    color: #7a4b3a;
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+}
+
+.resena-comentario {
+    color: #333;
+    line-height: 1.6;
+    margin-bottom: 1.2rem;
+    font-style: italic;
+}
+
+.resena-acciones {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.btn-mini {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-mini.editar {
+    background-color: #7c1823;
+    color: #fff;
+}
+
+.btn-mini.editar:hover {
+    background-color: #5a0f18;
+}
+
+.btn-mini.eliminar {
+    background-color: #a0232f;
+    color: #fff;
+}
+
+.btn-mini.eliminar:hover {
+    background-color: #7a1823;
+}
+
+.btn-mini.ver-producto {
+    background-color: #3b1b14;
+    color: #fff;
+}
+
+.btn-mini.ver-producto:hover {
+    background-color: #2a0e09;
+}
+
+.separador-resena {
+    border: none;
+    border-top: 1px solid #e6ded6;
+    margin: 1.5rem 0;
+}
+
+.sin-resenas {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.sin-resenas .placeholder {
+    font-size: 1.2rem;
+    color: #7a4b3a;
+    margin-bottom: 1rem;
+}
+
+.sin-resenas p {
+    color: #5a4a44;
+    margin-bottom: 1.5rem;
+}
+
+/* Formulario de reseña */
+.form-resena {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-grupo {
+    margin-bottom: 1.5rem;
+}
+
+.form-grupo label {
+    display: block;
+    color: #4b1e15;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.form-textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #d4c1a2;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-textarea:focus {
+    outline: none;
+    border-color: #7c1823;
+}
+
+.ayuda-texto {
+    display: block;
+    color: #7a4b3a;
+    font-size: 0.85rem;
+    margin-top: 0.3rem;
+}
+
+.errores {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+}
+
+.errores li {
+    color: #a0232f;
+    font-size: 0.9rem;
+}
+
+.form-acciones {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.producto-resena {
+    text-align: center;
+    color: #7a4b3a;
+    margin-top: 0.5rem;
+}
+
+.producto-resena strong {
+    color: #4b1e15;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .resena-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .resena-acciones {
+        flex-direction: column;
+    }
+    
+    .btn-mini {
+        width: 100%;
+        text-align: center;
+    }
+}
+
 
 /* ===========================
    DASHBOARD ADMINISTRATIVO - ÉBANO
@@ -800,4 +1011,484 @@ footer {
 
 .boton-admin:hover {
     background-color: #5a0f18;
+}
+
+/* ===========================
+   CHECKOUT - Tabla de resumen
+=========================== */
+
+.checkout {
+    padding: 3rem 2rem;
+    background-color: #f5f2ef;
+    min-height: 70vh;
+}
+
+.checkout-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.checkout-container h1 {
+    color: #4b1e15;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.checkout-container > p {
+    text-align: center;
+    color: #7a4b3a;
+    margin-bottom: 2rem;
+}
+
+.tabla-checkout {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+
+.tabla-checkout thead {
+    background-color: #7c1823;
+    color: #fff;
+}
+
+.tabla-checkout th,
+.tabla-checkout td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e6ded6;
+}
+
+.tabla-checkout th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.tabla-checkout tbody tr:hover {
+    background-color: #faf6f2;
+}
+
+.tabla-checkout td {
+    color: #333;
+}
+
+.total-checkout {
+    text-align: right;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #faf6f2;
+    border-radius: 10px;
+    border-left: 4px solid #7c1823;
+}
+
+.total-checkout h2 {
+    color: #4b1e15;
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+.checkout form {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tabla-checkout {
+        font-size: 0.85rem;
+    }
+    
+    .tabla-checkout th,
+    .tabla-checkout td {
+        padding: 0.6rem;
+    }
+    
+    .checkout-container {
+        padding: 1.5rem;
+    }
+}
+
+/* ===========================
+   ADMIN - Tabla de inventario
+=========================== */
+
+.seccion-productos-admin {
+    margin-top: 3rem;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.seccion-productos-admin h2 {
+    color: #4b1e15;
+    margin-bottom: 1.5rem;
+    font-size: 1.6rem;
+    border-bottom: 2px solid #7c1823;
+    padding-bottom: 0.5rem;
+}
+
+.tabla-productos-admin {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-productos-admin thead {
+    background-color: #7c1823;
+    color: #fff;
+}
+
+.tabla-productos-admin th,
+.tabla-productos-admin td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e6ded6;
+}
+
+.tabla-productos-admin th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+.tabla-productos-admin tbody tr:hover {
+    background-color: #faf6f2;
+}
+
+.boton-mini {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    background-color: #7c1823;
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    margin-right: 0.5rem;
+    transition: background-color 0.3s ease;
+}
+
+.boton-mini:hover {
+    background-color: #5a0f18;
+}
+
+.boton-mini.eliminar {
+    background-color: #a0232f;
+}
+
+.boton-mini.eliminar:hover {
+    background-color: #7a1823;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tabla-productos-admin {
+        font-size: 0.85rem;
+    }
+    
+    .tabla-productos-admin th,
+    .tabla-productos-admin td {
+        padding: 0.6rem;
+    }
+}
+
+/* ===========================
+   MIS PEDIDOS E HISTORIAL
+=========================== */
+
+.acciones-pedidos {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.lista-pedidos {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.pedido-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+    border-left: 5px solid #7c1823;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pedido-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.pedido-card.historial {
+    border-left-color: #3b1b14;
+}
+
+/* Header del pedido */
+.pedido-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #fdf7f2 0%, #faf6f2 100%);
+    border-bottom: 1px solid #e6ded6;
+}
+
+.pedido-info-basica h3 {
+    color: #4b1e15;
+    font-size: 1.3rem;
+    margin: 0 0 0.3rem 0;
+}
+
+.pedido-fecha {
+    color: #7a4b3a;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+/* Estados de pedido */
+.pedido-estado {
+    padding: 0.5rem 1.2rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.estado-pendiente {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+}
+
+.estado-en-proceso {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #17a2b8;
+}
+
+.estado-enviado {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #28a745;
+}
+
+.estado-entregado {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #28a745;
+}
+
+.estado-cancelado {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #dc3545;
+}
+
+/* Lista de productos en el pedido */
+.pedido-productos {
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.producto-pedido {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: #fdf7f2;
+    border-radius: 12px;
+    transition: background 0.2s ease;
+}
+
+.producto-pedido:hover {
+    background: #f5ebe1;
+}
+
+.producto-imagen-mini {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.producto-imagen-mini img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.producto-info-pedido {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.producto-info-pedido strong {
+    color: #4b1e15;
+    font-size: 1.1rem;
+}
+
+.producto-cantidad {
+    color: #7a4b3a;
+    font-size: 0.9rem;
+}
+
+.producto-subtotal {
+    color: #7c1823;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Footer del pedido */
+.pedido-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: #fdf7f2;
+    border-top: 1px solid #e6ded6;
+}
+
+.pedido-total {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pedido-total strong {
+    color: #4b1e15;
+    font-size: 1.1rem;
+}
+
+.total-monto {
+    color: #7c1823;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+/* Botón recomprar */
+.btn-recomprar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.5rem;
+    background: linear-gradient(135deg, #7c1823 0%, #5a0f18 100%);
+    color: #fff;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(124, 24, 35, 0.2);
+}
+
+.btn-recomprar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(124, 24, 35, 0.3);
+    background: linear-gradient(135deg, #5a0f18 0%, #7c1823 100%);
+}
+
+/* Sin pedidos */
+.sin-pedidos {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #fdf7f2;
+    border-radius: 16px;
+    border: 2px dashed #d4c1a2;
+}
+
+.sin-pedidos .placeholder {
+    font-size: 1.3rem;
+    color: #4b1e15;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.sin-pedidos p {
+    color: #7a4b3a;
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+}
+
+/* Responsive para pedidos */
+@media (max-width: 768px) {
+    .pedido-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.2rem 1.5rem;
+    }
+
+    .pedido-estado {
+        align-self: flex-start;
+    }
+
+    .pedido-productos {
+        padding: 1.2rem 1.5rem;
+    }
+
+    .producto-pedido {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .producto-imagen-mini {
+        width: 100px;
+        height: 100px;
+    }
+
+    .pedido-footer {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+        padding: 1.2rem 1.5rem;
+    }
+
+    .btn-recomprar {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .acciones-pedidos {
+        flex-direction: column;
+    }
+
+    .acciones-pedidos .btn-artesanal,
+    .acciones-pedidos .boton-secundario {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .pedido-info-basica h3 {
+        font-size: 1.1rem;
+    }
+
+    .total-monto {
+        font-size: 1.2rem;
+    }
+
+    .producto-info-pedido strong {
+        font-size: 1rem;
+    }
 }

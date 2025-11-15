@@ -1,13 +1,78 @@
 {% extends "base.html" %}
 {% block title %}Mis Pedidos | Ébano{% endblock %}
+
 {% block content %}
 <section class="panel-cliente">
   <div class="panel-header">
-    <h2>Mis pedidos</h2>
-    <p>Revisa tus órdenes activas y el estado de tus compras.</p>
+    <h2>Mis pedidos activos</h2>
+    <p>Revisa tus órdenes en curso y su estado actual.</p>
   </div>
+
   <div class="panel-content">
-    <p class="placeholder">Aún no tienes pedidos activos.</p>
+    <!-- Mensajes flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="acciones-pedidos">
+      <a href="{{ url_for('dashboard_usuario') }}" class="btn-artesanal">← Volver al panel</a>
+      <a href="{{ url_for('tienda') }}" class="boton-secundario">Ir a la tienda</a>
+    </div>
+
+    {% if pedidos and pedidos|length > 0 %}
+      <div class="lista-pedidos">
+        {% for p in pedidos %}
+          <div class="pedido-card">
+            <div class="pedido-header">
+              <div class="pedido-info-basica">
+                <h3>Pedido #{{ p.id }}</h3>
+                <span class="pedido-fecha">{{ p.fecha.strftime('%d/%m/%Y %H:%M') if p.fecha else 'Sin fecha' }}</span>
+              </div>
+              <span class="pedido-estado estado-{{ p.estado|lower|replace(' ', '-') }}">
+                {{ p.estado }}
+              </span>
+            </div>
+
+            <div class="pedido-productos">
+              {% for prod in p.productos %}
+                <div class="producto-pedido">
+                  <div class="producto-imagen-mini">
+                    {% if prod.imagen_url %}
+                      <img src="{{ url_for('static', filename=prod.imagen_url) }}" alt="{{ prod.nombre }}">
+                    {% else %}
+                      <img src="{{ url_for('static', filename='img/default.png') }}" alt="{{ prod.nombre }}">
+                    {% endif %}
+                  </div>
+                  <div class="producto-info-pedido">
+                    <strong>{{ prod.nombre }}</strong>
+                    <span class="producto-cantidad">Cantidad: {{ prod.cantidad }}</span>
+                    <span class="producto-subtotal">{{ prod.subtotal|usd }}</span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <div class="pedido-footer">
+              <div class="pedido-total">
+                <strong>Total:</strong> <span class="total-monto">{{ p.total|usd }}</span>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="sin-pedidos">
+        <p class="placeholder">No tienes pedidos activos en este momento.</p>
+        <p>¡Explora nuestra tienda y realiza tu primera compra!</p>
+        <a href="{{ url_for('tienda') }}" class="btn-artesanal">Ir a la tienda</a>
+      </div>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

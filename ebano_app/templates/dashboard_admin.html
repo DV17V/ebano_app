@@ -9,7 +9,6 @@
             <h1 class="titulo-dashboard">Panel Administrativo Ébano</h1>
         </center>
         
-
         <div class="tarjetas-dashboard">
             <div class="tarjeta-admin">
                 <h2>Usuarios</h2>
@@ -35,6 +34,37 @@
                 <a href="#" class="boton-admin">Revisar</a>
             </div>
         </div>
+
+        {% if products and products|length > 0 %}
+        <div class="seccion-productos-admin">
+            <h2>Inventario de Productos</h2>
+            <table class="tabla-productos-admin">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Precio (COP)</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td>{{ p.nombre }}</td>
+                        <td>${{ p.precio|cop }} COP</td>
+                        <td>{{ p.stock }}</td>
+                        <td>
+                            <a href="#" class="boton-mini">Editar</a>
+                            <a href="#" class="boton-mini eliminar">Eliminar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
     </div>
 </section>
 {% endblock %}

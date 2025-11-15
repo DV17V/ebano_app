@@ -5,20 +5,54 @@
 <section class="panel-cliente">
   <div class="panel-header">
     <h2>{% if editar %}Editar reseña{% else %}Escribir reseña{% endif %}</h2>
-    <p>Producto: {{ producto_nombre }}</p>
+    <p class="producto-resena">Producto: <strong>{{ producto_nombre }}</strong></p>
   </div>
 
   <div class="panel-content">
-    <form method="POST">
+    <!-- Mensajes flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" class="form-resena">
       {{ form.hidden_tag() }}
 
-      <label>Comentario</label>
-      {{ form.comentario(class="form-input") }}
+      <div class="form-grupo">
+        <label for="calificacion">{{ form.calificacion.label }}</label>
+        {{ form.calificacion(class="form-input", min="1", max="5", required=True) }}
+        {% if form.calificacion.errors %}
+          <ul class="errores">
+            {% for error in form.calificacion.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        <small class="ayuda-texto">Calificación de 1 (malo) a 5 (excelente)</small>
+      </div>
 
-      <label>Calificación (1-5)</label>
-      {{ form.calificacion(class="form-input") }}
+      <div class="form-grupo">
+        <label for="comentario">{{ form.comentario.label }}</label>
+        {{ form.comentario(class="form-textarea", rows="5", required=True) }}
+        {% if form.comentario.errors %}
+          <ul class="errores">
+            {% for error in form.comentario.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        <small class="ayuda-texto">Mínimo 5 caracteres, máximo 1000</small>
+      </div>
 
-      {{ form.submit(class="btn-artesanal") }}
+      <div class="form-acciones">
+        {{ form.submit(class="btn-artesanal") }}
+        <a href="{{ url_for('resenas') }}" class="boton-secundario">Cancelar</a>
+      </div>
     </form>
   </div>
 </section>

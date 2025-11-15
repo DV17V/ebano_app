@@ -21,15 +21,15 @@
         <tr>
           <td>{{ item.nombre }}</td>
           <td>{{ item.cantidad }}</td>
-          <td>${{ "%.2f"|format(item.precio) }}</td>
-          <td>${{ "%.2f"|format(item.precio * item.cantidad) }}</td>
+          <td>{{ item.precio|usd }}</td>
+          <td>{{ (item.precio * item.cantidad)|usd }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
 
     <div class="total-checkout">
-      <h2>Total: ${{ "%.2f"|format(total) }}</h2>
+      <h2>Total: {{ total|usd }}</h2>
     </div>
 
     <form method="POST">
@@ -38,6 +38,4 @@
     </form>
   </div>
 </section>
-
-print("Checkout page rendered with total:", session)
 {% endblock %}

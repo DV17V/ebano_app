@@ -21,8 +21,8 @@
 
         <form method="post" action="{{ url_for('perfil') }}" class="form-perfil">
             <!-- Si usas Flask-WTF/CSRF token, puedes incluir {{ form.csrf_token }} en vez del input manual -->
-            {% if csrf_token is defined %}
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {% if form.csrf_token is defined %}
+                <input type="hidden" name="csrf_token" value="{{ form.csrf_token() }}">
             {% endif %}
 
             <div class="form-grupo">
