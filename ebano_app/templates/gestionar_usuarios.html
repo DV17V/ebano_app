@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Gestionar Usuarios | Ébano{% endblock %}
+
+{% block content %}
+<section class="gestionar-usuarios-seccion">
+    <div class="gestionar-usuarios-container">
+        <h1 class="titulo-gestionar">Gestionar Usuarios - Clientes Registrados</h1>
+
+        <!-- Mostrar mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% if usuarios and usuarios|length > 0 %}
+        <div class="seccion-usuarios-admin">
+            <p class="total-usuarios">Total de clientes: <strong>{{ usuarios|length }}</strong></p>
+            <table class="tabla-usuarios-admin">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Nombre Completo</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                        <th>Dirección</th>
+                        <th>Fecha Registro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in usuarios %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.nombre_usuario }}</td>
+                        <td>{{ u.nombre_completo }}</td>
+                        <td>{{ u.correo }}</td>
+                        <td>{{ u.telefono }}</td>
+                        <td>{{ u.direccion }}</td>
+                        <td>{{ u.fecha_registro.strftime('%d/%m/%Y %H:%M') if u.fecha_registro else 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="sin-usuarios">No hay clientes registrados.</p>
+        {% endif %}
+
+        <div class="form-acciones">
+            <a href="{{ url_for('dashboard_admin') }}" class="boton-secundario">Volver al Panel</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

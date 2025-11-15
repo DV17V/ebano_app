@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Gestionar Productos | Ébano{% endblock %}
+
+{% block content %}
+<section class="gestionar-productos-seccion">
+    <div class="gestionar-productos-container">
+        <h1 class="titulo-gestionar">Gestionar Productos - Inventario</h1>
+
+        <!-- Mostrar mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% if productos and productos|length > 0 %}
+        <div class="seccion-productos-admin">
+            <table class="tabla-productos-admin">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Precio (COP)</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in productos %}
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td>{{ p.nombre }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('gestionar_productos') }}" class="form-inline-producto">
+                                <input type="hidden" name="producto_id" value="{{ p.id }}">
+                                <input type="number" name="precio" value="{{ p.precio }}" step="0.01" class="input-mini" title="Precio COP">
+                                <input type="number" name="stock" value="{{ p.stock }}" class="input-mini" title="Stock" required>
+                                <button type="submit" class="boton-mini">Guardar</button>
+                            </form>
+                        </td>
+                        <td></td>
+                        <td>
+                            <a href="#" class="boton-mini eliminar">Eliminar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="sin-productos">No hay productos registrados.</p>
+        {% endif %}
+
+        <div class="form-acciones">
+            <a href="{{ url_for('dashboard_admin') }}" class="boton-secundario">Volver al Panel</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

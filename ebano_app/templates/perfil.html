@@ -20,10 +20,7 @@
         {% endwith %}
 
         <form method="post" action="{{ url_for('perfil') }}" class="form-perfil">
-            <!-- Si usas Flask-WTF/CSRF token, puedes incluir {{ form.csrf_token }} en vez del input manual -->
-            {% if form.csrf_token is defined %}
-                <input type="hidden" name="csrf_token" value="{{ form.csrf_token() }}">
-            {% endif %}
+            {# CSRF token: omitido en favor de manejo manual en la vista #}
 
             <div class="form-grupo">
                 <label for="nombre">Nombre completo</label>

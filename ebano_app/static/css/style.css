@@ -1187,6 +1187,219 @@ footer {
     background-color: #7a1823;
 }
 
+/* Formulario inline en tabla de productos */
+.form-inline-producto {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.input-mini {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    width: 90px;
+    text-align: center;
+}
+
+.input-mini:focus {
+    outline: none;
+    border-color: #7c1823;
+    box-shadow: 0 0 4px rgba(124, 24, 35, 0.3);
+}
+
+/* Tabla de usuarios admin */
+.seccion-usuarios-admin {
+    margin-top: 3rem;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.total-usuarios {
+    color: #4b1e15;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.tabla-usuarios-admin {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-usuarios-admin thead {
+    background-color: #7c1823;
+    color: #fff;
+}
+
+.tabla-usuarios-admin th,
+.tabla-usuarios-admin td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e6ded6;
+    font-size: 0.95rem;
+}
+
+.tabla-usuarios-admin th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.tabla-usuarios-admin tbody tr:hover {
+    background-color: #faf6f2;
+}
+
+/* Tabla de reseñas admin */
+.seccion-resenas-admin {
+    margin-top: 3rem;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.total-resenas {
+    color: #4b1e15;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.tabla-resenas-admin {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-resenas-admin thead {
+    background-color: #7c1823;
+    color: #fff;
+}
+
+.tabla-resenas-admin th,
+.tabla-resenas-admin td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e6ded6;
+    font-size: 0.9rem;
+}
+
+.tabla-resenas-admin th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.tabla-resenas-admin tbody tr:hover {
+    background-color: #faf6f2;
+}
+
+.tabla-resenas-admin .calificacion {
+    text-align: center;
+    font-weight: 500;
+}
+
+.tabla-resenas-admin .estrellas {
+    color: #d4af37;
+    font-size: 1.1rem;
+    margin-right: 0.5rem;
+}
+
+.tabla-resenas-admin .comentario-cell {
+    max-width: 300px;
+    word-wrap: break-word;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+/* Tabla de pedidos admin */
+.seccion-pedidos-admin {
+    margin-top: 3rem;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.total-pedidos {
+    color: #4b1e15;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.tabla-pedidos-admin {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-pedidos-admin thead {
+    background-color: #7c1823;
+    color: #fff;
+}
+
+.tabla-pedidos-admin th,
+.tabla-pedidos-admin td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e6ded6;
+    font-size: 0.95rem;
+}
+
+.tabla-pedidos-admin th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.tabla-pedidos-admin tbody tr:hover {
+    background-color: #faf6f2;
+}
+
+.tabla-pedidos-admin .total-cell {
+    font-weight: 600;
+    color: #7c1823;
+}
+
+/* Badges de estado */
+.badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge.estado-pendiente {
+    background-color: #ffd700;
+    color: #333;
+}
+
+.badge.estado-en-proceso {
+    background-color: #87ceeb;
+    color: #000;
+}
+
+.badge.estado-enviado {
+    background-color: #90ee90;
+    color: #000;
+}
+
+.badge.estado-entregado {
+    background-color: #98fb98;
+    color: #000;
+}
+
+.badge.estado-cancelado {
+    background-color: #ff6b6b;
+    color: #fff;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .tabla-productos-admin {

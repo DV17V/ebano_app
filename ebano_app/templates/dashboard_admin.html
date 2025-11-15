@@ -13,58 +13,27 @@
             <div class="tarjeta-admin">
                 <h2>Usuarios</h2>
                 <p class="valor">{{ stats.total_usuarios }}</p>
-                <a href="#" class="boton-admin">Gestionar</a>
+                <a href="{{ url_for('gestionar_usuarios') }}" class="boton-admin">Gestionar</a>
             </div>
 
             <div class="tarjeta-admin">
                 <h2>Productos</h2>
                 <p class="valor">{{ stats.total_productos }}</p>
-                <a href="#" class="boton-admin">Gestionar</a>
+                <a href="{{ url_for('gestionar_productos') }}" class="boton-admin">Gestionar</a>
             </div>
 
             <div class="tarjeta-admin">
                 <h2>Pedidos</h2>
                 <p class="valor">{{ stats.total_pedidos }}</p>
-                <a href="#" class="boton-admin">Ver pedidos</a>
+                <a href="{{ url_for('gestionar_pedidos') }}" class="boton-admin">Ver pedidos</a>
             </div>
 
             <div class="tarjeta-admin">
                 <h2>Reseñas</h2>
                 <p class="valor">{{ stats.reseñas_pendientes }}</p>
-                <a href="#" class="boton-admin">Revisar</a>
+                <a href="{{ url_for('gestionar_resenas') }}" class="boton-admin">Revisar</a>
             </div>
         </div>
-
-        {% if products and products|length > 0 %}
-        <div class="seccion-productos-admin">
-            <h2>Inventario de Productos</h2>
-            <table class="tabla-productos-admin">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Precio (COP)</th>
-                        <th>Stock</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in products %}
-                    <tr>
-                        <td>{{ p.id }}</td>
-                        <td>{{ p.nombre }}</td>
-                        <td>${{ p.precio|cop }} COP</td>
-                        <td>{{ p.stock }}</td>
-                        <td>
-                            <a href="#" class="boton-mini">Editar</a>
-                            <a href="#" class="boton-mini eliminar">Eliminar</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endif %}
     </div>
 </section>
 {% endblock %}

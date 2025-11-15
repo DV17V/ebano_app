@@ -1199,8 +1199,23 @@ def dashboard_admin():
     
     conn = get_connection()
     products = []
+    total_usuarios = 0
+    total_resenas = 0
     
     try:
+        # Contar usuarios clientes
+        res_usuarios = conn.run("SELECT COUNT(*) FROM usuarios WHERE rol = :rol;", rol="cliente")
+        total_usuarios = res_usuarios[0][0] if res_usuarios else 0
+        
+        # Contar reseñas
+        res_resenas = conn.run("SELECT COUNT(*) FROM resenas;")
+        total_resenas = res_resenas[0][0] if res_resenas else 0
+        
+        # Contar pedidos
+        res_pedidos = conn.run("SELECT COUNT(*) FROM pedidos;")
+        total_pedidos = res_pedidos[0][0] if res_pedidos else 0
+        
+        # Cargar productos
         res = conn.run("SELECT id, nombre, precio, stock FROM productos ORDER BY id;")
         for r in res:
             products.append({
@@ -1218,13 +1233,261 @@ def dashboard_admin():
             pass
     
     stats = {
-        "total_usuarios": 0,
+        "total_usuarios": total_usuarios,
         "total_productos": len(products),
-        "total_pedidos": 0,
-        "reseñas_pendientes": 0
+        "total_pedidos": total_pedidos,
+        "reseñas_pendientes": total_resenas
     }
     
     return render_template("dashboard_admin.html", stats=stats, products=products)
+
+
+# ------------------------------------------------------------
+# GESTIONAR USUARIOS (ADMIN) - Listado de clientes
+# ------------------------------------------------------------
+@app.route("/admin/gestionar_usuarios", methods=["GET"])
+@login_required
+def gestionar_usuarios():
+    if current_user.rol != "admin":
+        flash("No tienes permisos para acceder a esta sección.", "danger")
+        return redirect(url_for("index"))
+    
+    conn = get_connection()
+    if not conn:
+        flash("Error de conexión con la base de datos.", "danger")
+        return redirect(url_for("dashboard_admin"))
+    
+    usuarios = []
+    try:
+        # Obtener todos los usuarios con rol 'cliente' ordenados por fecha de registro
+        res = conn.run("""
+            SELECT id, nombre_usuario, correo, nombre_completo, telefono, direccion, fecha_registro
+            FROM usuarios
+            WHERE rol = :rol
+            ORDER BY fecha_registro DESC;
+        """, rol="cliente")
+        
+        for row in res:
+            usuarios.append({
+                "id": row[0],
+                "nombre_usuario": row[1],
+                "correo": row[2],
+                "nombre_completo": row[3] or row[1],
+                "telefono": row[4] or "No registrado",
+                "direccion": row[5] or "No registrada",
+                "fecha_registro": row[6]
+            })
+        
+        print(f"✅ Listado de usuarios: {len(usuarios)} clientes encontrados")
+    
+    except Exception as e:
+        print(f"❌ Error al obtener usuarios: {e}")
+        flash("Error al cargar los usuarios.", "danger")
+    finally:
+        try:
+            conn.close()
+        except:
+            pass
+    
+    return render_template("gestionar_usuarios.html", usuarios=usuarios)
+
+
+# ------------------------------------------------------------
+# GESTIONAR RESEÑAS (ADMIN) - Todas las reseñas
+# ------------------------------------------------------------
+@app.route("/admin/gestionar_resenas", methods=["GET"])
+@login_required
+def gestionar_resenas():
+    if current_user.rol != "admin":
+        flash("No tienes permisos para acceder a esta sección.", "danger")
+        return redirect(url_for("index"))
+    
+    conn = get_connection()
+    if not conn:
+        flash("Error de conexión con la base de datos.", "danger")
+        return redirect(url_for("dashboard_admin"))
+    
+    resenas = []
+    try:
+        # Obtener todas las reseñas con información de usuario y producto
+        res = conn.run("""
+            SELECT r.id, r.id_usuario, u.nombre_completo, u.correo, r.id_producto, 
+                   p.nombre as producto_nombre, r.comentario, r.calificacion, r.fecha
+            FROM resenas r
+            JOIN usuarios u ON r.id_usuario = u.id
+            JOIN productos p ON r.id_producto = p.id
+            ORDER BY r.fecha DESC;
+        """)
+        
+        for row in res:
+            resenas.append({
+                "id": row[0],
+                "id_usuario": row[1],
+                "usuario_nombre": row[2],
+                "usuario_correo": row[3],
+                "id_producto": row[4],
+                "producto_nombre": row[5],
+                "comentario": row[6],
+                "calificacion": row[7],
+                "fecha": row[8]
+            })
+        
+        print(f"✅ Listado de reseñas: {len(resenas)} reseñas encontradas")
+    
+    except Exception as e:
+        print(f"❌ Error al obtener reseñas: {e}")
+        flash("Error al cargar las reseñas.", "danger")
+    finally:
+        try:
+            conn.close()
+        except:
+            pass
+    
+    return render_template("gestionar_resenas.html", resenas=resenas)
+
+
+# ------------------------------------------------------------
+# GESTIONAR PEDIDOS (ADMIN) - Todos los pedidos
+# ------------------------------------------------------------
+@app.route("/admin/gestionar_pedidos", methods=["GET"])
+@login_required
+def gestionar_pedidos():
+    if current_user.rol != "admin":
+        flash("No tienes permisos para acceder a esta sección.", "danger")
+        return redirect(url_for("index"))
+    
+    conn = get_connection()
+    if not conn:
+        flash("Error de conexión con la base de datos.", "danger")
+        return redirect(url_for("dashboard_admin"))
+    
+    pedidos = []
+    try:
+        # Obtener todos los pedidos con información de usuario
+        res = conn.run("""
+            SELECT p.id, p.id_usuario, u.nombre_completo, u.correo, p.fecha_pedido, 
+                   p.total, p.estado
+            FROM pedidos p
+            JOIN usuarios u ON p.id_usuario = u.id
+            ORDER BY p.fecha_pedido DESC;
+        """)
+        
+        for row in res:
+            pedidos.append({
+                "id": row[0],
+                "id_usuario": row[1],
+                "usuario_nombre": row[2],
+                "usuario_correo": row[3],
+                "fecha_pedido": row[4],
+                "total": int(parse_price_db(row[5]).quantize(Decimal('1'))),
+                "estado": row[6]
+            })
+        
+        print(f"✅ Listado de pedidos: {len(pedidos)} pedidos encontrados")
+    
+    except Exception as e:
+        print(f"❌ Error al obtener pedidos: {e}")
+        flash("Error al cargar los pedidos.", "danger")
+    finally:
+        try:
+            conn.close()
+        except:
+            pass
+    
+    return render_template("gestionar_pedidos.html", pedidos=pedidos)
+
+
+# ------------------------------------------------------------
+# GESTIONAR PRODUCTOS (ADMIN) - Inventario
+# ------------------------------------------------------------
+@app.route("/admin/gestionar_productos", methods=["GET", "POST"])
+@login_required
+def gestionar_productos():
+    if current_user.rol != "admin":
+        flash("No tienes permisos para acceder a esta sección.", "danger")
+        return redirect(url_for("index"))
+    
+    conn = get_connection()
+    if not conn:
+        flash("Error de conexión con la base de datos.", "danger")
+        return redirect(url_for("dashboard_admin"))
+    
+    try:
+        # Si es POST, actualizar un producto específico
+        if request.method == "POST":
+            producto_id = request.form.get("producto_id", "").strip()
+            nuevo_stock = request.form.get("stock", "").strip()
+            nuevo_precio = request.form.get("precio", "").strip()
+            
+            if not producto_id or not nuevo_stock:
+                flash("Datos incompletos.", "warning")
+                return redirect(url_for("gestionar_productos"))
+            
+            try:
+                producto_id = int(producto_id)
+                nuevo_stock = int(nuevo_stock)
+                
+                if nuevo_stock < 0:
+                    flash("El stock no puede ser negativo.", "warning")
+                    return redirect(url_for("gestionar_productos"))
+                
+                # Actualizar stock
+                conn.run("UPDATE productos SET stock = :stock WHERE id = :id;", stock=nuevo_stock, id=producto_id)
+                
+                # Actualizar precio si se proporciona
+                if nuevo_precio:
+                    try:
+                        nuevo_precio_dec = Decimal(nuevo_precio)
+                        if nuevo_precio_dec < 0:
+                            flash("El precio no puede ser negativo.", "warning")
+                            return redirect(url_for("gestionar_productos"))
+                        conn.run("UPDATE productos SET precio = :precio WHERE id = :id;", precio=nuevo_precio_dec, id=producto_id)
+                    except (InvalidOperation, ValueError):
+                        flash("Precio inválido.", "warning")
+                        return redirect(url_for("gestionar_productos"))
+                
+                conn.commit()
+                flash("Producto actualizado correctamente.", "success")
+                return redirect(url_for("gestionar_productos"))
+            
+            except ValueError:
+                flash("Stock y precio deben ser números válidos.", "warning")
+                return redirect(url_for("gestionar_productos"))
+            except Exception as e:
+                print(f"❌ Error al actualizar producto {producto_id}: {e}")
+                try:
+                    conn.rollback()
+                except:
+                    pass
+                flash("Error al actualizar el producto.", "danger")
+                return redirect(url_for("gestionar_productos"))
+        
+        # GET: cargar todos los productos para la tabla
+        productos = []
+        try:
+            res = conn.run("SELECT id, nombre, precio, stock FROM productos ORDER BY id;")
+            for r in res:
+                productos.append({
+                    "id": r[0],
+                    "nombre": r[1],
+                    "precio": int(parse_price_db(r[2]).quantize(Decimal('1'))),
+                    "stock": r[3]
+                })
+        except Exception as e:
+            print(f"❌ Error al cargar productos: {e}")
+            flash("Error al cargar los productos.", "danger")
+        
+        return render_template("gestionar_productos.html", productos=productos)
+    
+    except Exception as e:
+        print(f"❌ Error en gestionar_productos: {e}")
+        flash("Error al gestionar productos.", "danger")
+        return redirect(url_for("dashboard_admin"))
+    finally:
+        try:
+            conn.close()
+        except:
+            pass
 
 
 # ------------------------------------------------------------

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Gestionar Reseñas | Ébano{% endblock %}
+
+{% block content %}
+<section class="gestionar-resenas-seccion">
+    <div class="gestionar-resenas-container">
+        <h1 class="titulo-gestionar">Gestionar Reseñas - Todas las Reseñas</h1>
+
+        <!-- Mostrar mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% if resenas and resenas|length > 0 %}
+        <div class="seccion-resenas-admin">
+            <p class="total-resenas">Total de reseñas: <strong>{{ resenas|length }}</strong></p>
+            <table class="tabla-resenas-admin">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Correo</th>
+                        <th>Producto</th>
+                        <th>Calificación</th>
+                        <th>Comentario</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in resenas %}
+                    <tr>
+                        <td>{{ r.id }}</td>
+                        <td>{{ r.usuario_nombre }}</td>
+                        <td>{{ r.usuario_correo }}</td>
+                        <td>{{ r.producto_nombre }}</td>
+                        <td class="calificacion">
+                            <span class="estrellas">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= r.calificacion %}
+                                        ★
+                                    {% else %}
+                                        ☆
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
+                            ({{ r.calificacion }}/5)
+                        </td>
+                        <td class="comentario-cell">{{ r.comentario[:50] }}{% if r.comentario|length > 50 %}...{% endif %}</td>
+                        <td>{{ r.fecha.strftime('%d/%m/%Y %H:%M') if r.fecha else 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="sin-resenas">No hay reseñas registradas.</p>
+        {% endif %}
+
+        <div class="form-acciones">
+            <a href="{{ url_for('dashboard_admin') }}" class="boton-secundario">Volver al Panel</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
