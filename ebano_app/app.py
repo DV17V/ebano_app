@@ -5,6 +5,7 @@
 from datetime import datetime
 import time
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+import jwt
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, make_response
 from flask_login import (
     LoginManager, login_user, logout_user,
@@ -1409,6 +1410,41 @@ def dashboard_admin():
     
     return render_template("dashboard_admin.html", stats=stats, products=products)
 
+# ------------------------------------------------------------
+# DASHBOARD DE ANALÍTICA (METABASE) - SOLO ADMIN
+# ------------------------------------------------------------
+# ------------------------------------------------------------
+# DASHBOARD DE ANALÍTICA (METABASE) - SOLO ADMIN
+# ------------------------------------------------------------
+@app.route("/admin/dashboard_analitica")
+@login_required
+def dashboard_analitica():
+    """
+    Muestra el dashboard de Metabase embebido con token JWT.
+    Solo accesible para administradores.
+    """
+    if current_user.rol != "admin":
+        flash("No tienes permisos para acceder a esta sección.", "danger")
+        return redirect(url_for("index"))
+    
+    # Configuración de Metabase
+    METABASE_SITE_URL = "http://localhost:3000"
+    METABASE_SECRET_KEY = "406ff0d4a4bc2e1a609a5b76e753a914c24499de468709190b98b4a26b9db8ad"
+    
+    # Crear payload con expiración de 10 minutos
+    payload = {
+        "resource": {"dashboard": 2},  # ID de tu dashboard
+        "params": {},
+        "exp": round(time.time()) + (60 * 10)  # 10 minutos de expiración
+    }
+    
+    # Generar token JWT
+    token = jwt.encode(payload, METABASE_SECRET_KEY, algorithm="HS256")
+    
+    # Construir URL del iframe
+    metabase_url = f"{METABASE_SITE_URL}/embed/dashboard/{token}#bordered=true&titled=true&theme=night"
+    
+    return render_template("dashboard_analitica.html", metabase_url=metabase_url)
 
 # ------------------------------------------------------------
 # GESTIONAR USUARIOS (ADMIN) - Listado de clientes

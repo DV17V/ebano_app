@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard de Analítica | Ébano{% endblock %}
+
+{% block content %}
+<section class="dashboard-analitica">
+    <div class="analitica-header">
+        <h1 class="titulo-analitica">📊 Dashboard de Analítica</h1>
+        <p class="subtitulo-analitica">Visualización en tiempo real de métricas clave del negocio</p>
+        <div class="botones-analitica">
+            <a href="{{ url_for('dashboard_admin') }}" class="boton-secundario">← Volver al Panel Admin</a>
+            <a href="{{ metabase_url }}" target="_blank" class="boton-admin">🔗 Abrir en pantalla completa</a>
+        </div>
+    </div>
+
+    <div class="iframe-container">
+        <iframe
+            src="{{ metabase_url }}"
+            frameborder="0"
+            width="100%"
+            height="100%"
+            allowtransparency
+            title="Dashboard de Analítica Ébano"
+        ></iframe>
+    </div>
+</section>
+
+<style>
+/* Estilos para el dashboard de analítica */
+.dashboard-analitica {
+    min-height: 100vh;
+    background: #f5f2ef;
+    padding: 0;
+}
+
+.analitica-header {
+    background: linear-gradient(135deg, #4b1e24 0%, #7c1823 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.titulo-analitica {
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+    font-family: 'Georgia', serif;
+}
+
+.subtitulo-analitica {
+    font-size: 1.1rem;
+    margin: 0 0 1.5rem 0;
+    opacity: 0.9;
+}
+
+.botones-analitica {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.iframe-container {
+    width: 100%;
+    height: calc(100vh - 200px);
+    background: white;
+    border: none;
+}
+
+.iframe-container iframe {
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .titulo-analitica {
+        font-size: 1.5rem;
+    }
+    
+    .analitica-header {
+        padding: 1.5rem 1rem;
+    }
+    
+    .iframe-container {
+        height: calc(100vh - 220px);
+    }
+}
+</style>
+{% endblock %}
