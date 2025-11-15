@@ -1022,70 +1022,25 @@ def borrar_resena(id):
     
     return redirect(url_for("resenas"))
 
+# ============================================================
+# SECCIÓN: PERFIL DE USUARIO (DATOS + CONTRASEÑA)
+# ============================================================
 
-# ------------------------------------------------------------
-# PERFIL DEL USUARIO
-# ------------------------------------------------------------
-@app.route("/perfil", methods=["GET", "POST"])
+@app.route("/perfil", methods=["GET"])
 @login_required
 def perfil():
+    """
+    Muestra el perfil del usuario con sus datos personales.
+    Solo para clientes.
+    """
+    if current_user.rol != "cliente":
+        flash("Acceso restringido al perfil de clientes.", "danger")
+        return redirect(url_for("index"))
+    
     conn = get_connection()
     if not conn:
         flash("Error de conexión con la base de datos.", "danger")
         return redirect(url_for("dashboard_usuario"))
-
-    if request.method == "POST":
-        nombre = request.form.get("nombre", "").strip()
-        telefono = request.form.get("telefono", "").strip()
-        direccion = request.form.get("direccion", "").strip()
-        
-        if not nombre:
-            flash("El nombre no puede estar vacío.", "warning")
-            try:
-                conn.close()
-            except:
-                pass
-            return redirect(url_for("perfil"))
-        
-        try:
-            update_q = """
-                UPDATE usuarios
-                SET nombre_completo = :nombre,
-                    telefono = :telefono,
-                    direccion = :direccion
-                WHERE id = :id;
-            """
-            conn.run(update_q,
-                     nombre=nombre,
-                     telefono=telefono,
-                     direccion=direccion,
-                     id=current_user.id)
-            conn.commit()
-            
-            session["usuario_nombre"] = nombre
-            try:
-                current_user.nombre_completo = nombre
-            except Exception:
-                pass
-            
-            flash("Perfil actualizado correctamente.", "success")
-            try:
-                conn.close()
-            except:
-                pass
-            return redirect(url_for("perfil"))
-        except Exception as e:
-            print(f"❌ Error al actualizar perfil: {e}")
-            try:
-                conn.rollback()
-            except:
-                pass
-            flash("No se pudo actualizar el perfil.", "danger")
-            try:
-                conn.close()
-            except:
-                pass
-            return redirect(url_for("perfil"))
 
     try:
         q = """
@@ -1095,6 +1050,7 @@ def perfil():
         """
         res = conn.run(q, id=current_user.id)
         datos = {"nombre": "", "correo": "", "telefono": "", "direccion": ""}
+        
         if res and len(res) > 0:
             row = res[0]
             datos["nombre"] = row[0] or ""
@@ -1103,6 +1059,8 @@ def perfil():
             datos["direccion"] = row[3] or ""
     except Exception as e:
         print(f"❌ Error al cargar perfil: {e}")
+        import traceback
+        traceback.print_exc()
         flash("Error cargando datos del perfil.", "danger")
         try:
             conn.close()
@@ -1116,6 +1074,180 @@ def perfil():
             pass
 
     return render_template("perfil.html", datos=datos)
+
+
+@app.route("/perfil/editar-datos", methods=["POST"])
+@login_required
+def perfil_editar_datos():
+    """
+    Actualiza los datos personales del usuario (nombre, teléfono, dirección).
+    Solo para clientes.
+    """
+    if current_user.rol != "cliente":
+        flash("Acceso no autorizado.", "danger")
+        return redirect(url_for("index"))
+    
+    nombre = request.form.get("nombre", "").strip()
+    telefono = request.form.get("telefono", "").strip()
+    direccion = request.form.get("direccion", "").strip()
+    
+    if not nombre:
+        flash("El nombre no puede estar vacío.", "warning")
+        return redirect(url_for("perfil"))
+    
+    conn = get_connection()
+    if not conn:
+        flash("Error de conexión con la base de datos.", "danger")
+        return redirect(url_for("perfil"))
+    
+    try:
+        update_q = """
+            UPDATE usuarios
+            SET nombre_completo = :nombre,
+                telefono = :telefono,
+                direccion = :direccion
+            WHERE id = :id;
+        """
+        conn.run(update_q,
+                 nombre=nombre,
+                 telefono=telefono,
+                 direccion=direccion,
+                 id=current_user.id)
+        conn.commit()
+        
+        # Actualizar sesión
+        session["usuario_nombre"] = nombre
+        try:
+            current_user.nombre_completo = nombre
+        except Exception:
+            pass
+        
+        print(f"✅ Datos personales actualizados: usuario {current_user.id}")
+        
+        flash("Datos personales actualizados correctamente.", "success")
+        
+    except Exception as e:
+        print(f"❌ Error al actualizar datos: {e}")
+        import traceback
+        traceback.print_exc()
+        try:
+            conn.rollback()
+        except:
+            pass
+        flash("No se pudo actualizar los datos.", "danger")
+    finally:
+        try:
+            conn.close()
+        except:
+            pass
+    
+    return redirect(url_for("perfil"))
+
+
+@app.route("/perfil/cambiar-contrasena", methods=["POST"])
+@login_required
+def perfil_cambiar_contrasena():
+    """
+    Cambia la contraseña del usuario.
+    Valida la contraseña actual antes de actualizar.
+    Solo para clientes.
+    """
+    if current_user.rol != "cliente":
+        flash("Acceso no autorizado.", "danger")
+        return redirect(url_for("index"))
+    
+    contrasena_actual = request.form.get("contrasena_actual", "").strip()
+    contrasena_nueva = request.form.get("contrasena_nueva", "").strip()
+    contrasena_confirmar = request.form.get("contrasena_confirmar", "").strip()
+    
+    # Validaciones
+    if not all([contrasena_actual, contrasena_nueva, contrasena_confirmar]):
+        flash("Todos los campos de contraseña son obligatorios.", "warning")
+        return redirect(url_for("perfil"))
+    
+    if contrasena_nueva != contrasena_confirmar:
+        flash("La nueva contraseña y su confirmación no coinciden.", "danger")
+        return redirect(url_for("perfil"))
+    
+    if len(contrasena_nueva) < 6:
+        flash("La nueva contraseña debe tener al menos 6 caracteres.", "warning")
+        return redirect(url_for("perfil"))
+    
+    if contrasena_actual == contrasena_nueva:
+        flash("La nueva contraseña debe ser diferente a la actual.", "warning")
+        return redirect(url_for("perfil"))
+    
+    conn = get_connection()
+    if not conn:
+        flash("Error de conexión con la base de datos.", "danger")
+        return redirect(url_for("perfil"))
+    
+    try:
+        # Obtener contraseña actual de la BD
+        q = "SELECT contraseña FROM usuarios WHERE id = :id;"
+        res = conn.run(q, id=current_user.id)
+        
+        if not res:
+            flash("Error al verificar usuario.", "danger")
+            try:
+                conn.close()
+            except:
+                pass
+            return redirect(url_for("perfil"))
+        
+        stored_hash_raw = res[0][0]
+        
+        if isinstance(stored_hash_raw, str):
+            stored_hash = stored_hash_raw.encode("utf-8")
+        else:
+            stored_hash = stored_hash_raw
+        
+        # Verificar contraseña actual
+        if not bcrypt.checkpw(contrasena_actual.encode("utf-8"), stored_hash):
+            flash("La contraseña actual es incorrecta.", "danger")
+            try:
+                conn.close()
+            except:
+                pass
+            return redirect(url_for("perfil"))
+        
+        # Hashear nueva contraseña
+        nueva_hash = bcrypt.hashpw(contrasena_nueva.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        
+        # Actualizar en BD
+        update_q = "UPDATE usuarios SET contraseña = :contraseña WHERE id = :id;"
+        conn.run(update_q, contraseña=nueva_hash, id=current_user.id)
+        conn.commit()
+        
+        print(f"✅ Contraseña cambiada: usuario {current_user.id}")
+        
+        flash("Contraseña actualizada correctamente. Por seguridad, vuelve a iniciar sesión.", "success")
+        
+        # Cerrar sesión por seguridad (opcional pero recomendado)
+        try:
+            logout_user()
+        except:
+            pass
+        session.clear()
+        
+        return redirect(url_for("login"))
+        
+    except Exception as e:
+        print(f"❌ Error al cambiar contraseña: {e}")
+        import traceback
+        traceback.print_exc()
+        try:
+            conn.rollback()
+        except:
+            pass
+        flash("No se pudo cambiar la contraseña.", "danger")
+    finally:
+        try:
+            conn.close()
+        except:
+            pass
+    
+    return redirect(url_for("perfil"))
 
 
 # ------------------------------------------------------------
@@ -1720,6 +1852,26 @@ def checkout_success():
         return redirect(url_for("login"))
     return render_template("checkout_success.html")
 
+# ------------------------------------------------------------
+# MANEJADORES DE ERRORES
+# ------------------------------------------------------------
+@app.errorhandler(404)
+def page_not_found(e):
+    """
+    Maneja errores 404 (página no encontrada).
+    Muestra la plantilla personalizada 404.html.
+    """
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    """
+    Maneja errores 500 (error interno del servidor).
+    Opcional: puedes crear una plantilla 500.html si quieres.
+    """
+    print(f"❌ Error 500: {e}")
+    return render_template('404.html'), 500  # Reutiliza 404.html por ahora
 
 # ------------------------------------------------------------
 # MAIN

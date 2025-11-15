@@ -6,7 +6,7 @@
 <section class="perfil-seccion">
     <div class="perfil-container">
         <h1 class="titulo-perfil">Mi Perfil</h1>
-        <p class="subtitulo-perfil">Actualiza tu información personal</p>
+        <p class="subtitulo-perfil">Administra tu información personal y seguridad</p>
 
         <!-- Mostrar mensajes flash -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -19,35 +19,85 @@
           {% endif %}
         {% endwith %}
 
-        <form method="post" action="{{ url_for('perfil') }}" class="form-perfil">
-            {# CSRF token: omitido en favor de manejo manual en la vista #}
-
-            <div class="form-grupo">
-                <label for="nombre">Nombre completo</label>
-                <input id="nombre" name="nombre" type="text" required value="{{ datos.nombre }}">
-            </div>
-
-            <div class="form-grupo">
-                <label for="correo">Correo electrónico</label>
-                <input id="correo" name="correo" type="email" value="{{ datos.correo }}" readonly>
-            </div>
-
-            <div class="form-grupo doble">
-                <div>
-                    <label for="telefono">Teléfono</label>
-                    <input id="telefono" name="telefono" type="text" value="{{ datos.telefono }}">
+        <!-- ========================================
+             SECCIÓN 1: DATOS PERSONALES
+        ========================================= -->
+        <div class="seccion-perfil">
+            <h2 class="subtitulo-seccion">
+                <span class="icono-seccion">👤</span> Datos Personales
+            </h2>
+            
+            <form method="post" action="{{ url_for('perfil_editar_datos') }}" class="form-perfil">
+                <div class="form-grupo">
+                    <label for="nombre">Nombre completo</label>
+                    <input id="nombre" name="nombre" type="text" required value="{{ datos.nombre }}" placeholder="Tu nombre completo">
                 </div>
-                <div>
-                    <label for="direccion">Dirección</label>
-                    <input id="direccion" name="direccion" type="text" value="{{ datos.direccion }}">
+
+                <div class="form-grupo">
+                    <label for="correo">Correo electrónico</label>
+                    <input id="correo" name="correo" type="email" value="{{ datos.correo }}" readonly title="El correo no se puede modificar">
+                    <small class="ayuda-texto">El correo no se puede modificar por seguridad</small>
                 </div>
+
+                <div class="form-grupo doble">
+                    <div>
+                        <label for="telefono">Teléfono</label>
+                        <input id="telefono" name="telefono" type="text" value="{{ datos.telefono }}" placeholder="Ej: +57 300 1234567">
+                    </div>
+                    <div>
+                        <label for="direccion">Dirección</label>
+                        <input id="direccion" name="direccion" type="text" value="{{ datos.direccion }}" placeholder="Calle, número, ciudad">
+                    </div>
+                </div>
+
+                <div class="form-acciones">
+                    <button type="submit" class="boton-principal">💾 Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Separador visual -->
+        <hr class="separador-perfil">
+
+        <!-- ========================================
+             SECCIÓN 2: CAMBIAR CONTRASEÑA
+        ========================================= -->
+        <div class="seccion-perfil">
+            <h2 class="subtitulo-seccion">
+                <span class="icono-seccion">🔒</span> Seguridad - Cambiar Contraseña
+            </h2>
+            
+            <div class="alerta-info">
+                <strong>⚠️ Importante:</strong> Después de cambiar tu contraseña, deberás iniciar sesión nuevamente.
             </div>
 
-            <div class="form-acciones">
-                <button type="submit" class="boton-principal">Guardar cambios</button>
-                <a href="{{ url_for('dashboard_usuario') }}" class="boton-secundario">Volver al panel</a>
-            </div>
-        </form>
+            <form method="post" action="{{ url_for('perfil_cambiar_contrasena') }}" class="form-perfil">
+                <div class="form-grupo">
+                    <label for="contrasena_actual">Contraseña actual</label>
+                    <input id="contrasena_actual" name="contrasena_actual" type="password" required placeholder="Ingresa tu contraseña actual">
+                </div>
+
+                <div class="form-grupo">
+                    <label for="contrasena_nueva">Nueva contraseña</label>
+                    <input id="contrasena_nueva" name="contrasena_nueva" type="password" required minlength="6" placeholder="Mínimo 6 caracteres">
+                    <small class="ayuda-texto">Mínimo 6 caracteres</small>
+                </div>
+
+                <div class="form-grupo">
+                    <label for="contrasena_confirmar">Confirmar nueva contraseña</label>
+                    <input id="contrasena_confirmar" name="contrasena_confirmar" type="password" required minlength="6" placeholder="Repite la nueva contraseña">
+                </div>
+
+                <div class="form-acciones">
+                    <button type="submit" class="boton-principal boton-seguridad">🔑 Cambiar contraseña</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Botón volver -->
+        <div class="form-acciones" style="margin-top: 2rem; justify-content: center;">
+            <a href="{{ url_for('dashboard_usuario') }}" class="boton-secundario">← Volver al panel</a>
+        </div>
     </div>
 </section>
 {% endblock %}

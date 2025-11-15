@@ -1,6 +1,5 @@
 /* ================================================
    ESTILOS GENERALES - ÉBANO
-   Elegante y artesanal
    ================================================ */
 
 :root {
@@ -269,18 +268,48 @@ footer {
 .error-404 {
     text-align: center;
     padding: 100px 20px;
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #fdf7f2 0%, #f5ebe1 100%);
 }
 
 .error-404 h2 {
     color: var(--vino-oscuro);
-    margin-bottom: 10px;
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    font-family: 'Georgia', serif;
 }
 
 .error-404 p {
     color: #555;
-    margin-bottom: 20px;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
 }
 
+.error-404 .boton {
+    font-size: 1.1rem;
+    padding: 0.8rem 2rem;
+}
+
+/* Animación sutil */
+.error-404 h2 {
+    animation: fadeInDown 0.6s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
 /* --------------------------------
    FORMULARIOS (Login / Registro)
@@ -1703,5 +1732,89 @@ footer {
 
     .producto-info-pedido strong {
         font-size: 1rem;
+    }
+}
+
+/* ===========================
+   PERFIL - Secciones mejoradas
+=========================== */
+
+.seccion-perfil {
+    background: #fdfaf7;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    border: 1px solid #e6ded6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.subtitulo-seccion {
+    color: #4b1e15;
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid #d4c1a2;
+}
+
+.icono-seccion {
+    font-size: 1.6rem;
+}
+
+.separador-perfil {
+    border: none;
+    border-top: 2px dashed #d4c1a2;
+    margin: 2.5rem 0;
+}
+
+.alerta-info {
+    background: #fff8e1;
+    border-left: 4px solid #ffa726;
+    padding: 1rem 1.2rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    color: #7a5800;
+    font-size: 0.95rem;
+}
+
+.alerta-info strong {
+    color: #e65100;
+}
+
+.boton-seguridad {
+    background: linear-gradient(180deg, #d4af37 0%, #b8941f 100%);
+}
+
+.boton-seguridad:hover {
+    background: linear-gradient(180deg, #b8941f 0%, #d4af37 100%);
+    transform: translateY(-2px);
+}
+
+/* Input de solo lectura */
+input[readonly] {
+    background-color: #f5f2ef;
+    cursor: not-allowed;
+    color: #7a4b3a;
+}
+
+/* Ayuda texto mejorada */
+.ayuda-texto {
+    display: block;
+    color: #7a4b3a;
+    font-size: 0.85rem;
+    margin-top: 0.4rem;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+    .seccion-perfil {
+        padding: 1.5rem;
+    }
+    
+    .subtitulo-seccion {
+        font-size: 1.2rem;
     }
 }
