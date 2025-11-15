@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-
 {% block title %}{{ producto.nombre }} | Ébano{% endblock %}
 
 {% block content %}
 <section class="producto-detalle">
+
     <div class="producto-container">
         <div class="producto-imagen">
             {% if producto.imagen_url %}
                 <img src="{{ url_for('static', filename=producto.imagen_url) }}" alt="{{ producto.nombre }}">
             {% else %}
-                <img src="{{ url_for('static', filename='img/defalult.png') }}" alt="{{ producto.nombre }}">
+                <img src="{{ url_for('static', filename='img/default.png') }}" alt="{{ producto.nombre }}">
             {% endif %}
         </div>
 
@@ -19,10 +19,20 @@
 
             {% if mostrar_precios %}
                 <p class="producto-precio">
-                    Precio: <span>${{ "%.3f"|format(producto.precio) }}</span>
+                    Precio: <span>{{ producto.precio|usd }}</span>
                 </p>
-                <a class="btn-artesanal" href="{{ url_for('agregar_carrito', producto_id=producto.id) }}"><center>Añadir al carrito</center></a>
-                <a class="btn-artesanal" href="{{ url_for('crear_resena', product_id=producto.id) }}"><center>Escribir reseña</center></a>
+
+                <p class="stock">Stock disponible: {{ producto.stock }}</p>
+
+                <form method="POST" action="{{ url_for('agregar_carrito', producto_id=producto.id) }}" class="form-cantidad">
+                    <label>Cantidad:</label>
+                    <input type="number" name="cantidad" min="1" max="{{ producto.stock }}" value="1" required>
+                    <button type="submit" class="btn-artesanal">Añadir al carrito</button>
+                </form>
+
+                <a class="btn-artesanal" href="{{ url_for('crear_resena', product_id=producto.id) }}">
+                    <center>Escribir reseña</center>
+                </a>
             {% else %}
                 <p class="aviso">Inicia sesión para ver precios y comprar.</p>
             {% endif %}
@@ -31,24 +41,29 @@
         </div>
     </div>
 
-<hr class="separador-artesanal">
+    <hr class="separador-artesanal">
 
     {% if reseñas and reseñas|length > 0 %}
-        <div class="lista-reseñas">
-            {% for comentario, nombre, fecha, calificacion in reseñas %}
-                <div class="tarjeta-reseña">
-                    <p class="texto-reseña">“{{ comentario }}”</p>
-                    <p class="autor-reseña">– {{ nombre }} <span class="fecha-reseña">{{ fecha.strftime('%d/%m/%Y') }}</span></p>
-                    {% if calificacion %}
-                        <p class="calificacion">
-                            {% for i in range(calificacion|int) %}
-                                ⭐
-                            {% endfor %}
-                        </p>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        </div>
+    <div class="lista-reseñas">
+        {% for r in reseñas %}
+            <div class="tarjeta-reseña">
+                <p class="texto-reseña">“{{ r.comentario }}”</p>
+
+                <p class="autor-reseña">
+                    – {{ r.nombre_completo }}
+                    <span class="fecha-reseña">{{ r.fecha.strftime('%d/%m/%Y') }}</span>
+                </p>
+
+                {% if r.calificacion %}
+                <p class="calificacion">
+                    {% for i in range(r.calificacion|int) %}
+                        ⭐
+                    {% endfor %}
+                </p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
     {% else %}
         <p class="sin-reseñas">Aún no hay reseñas para este vino. ¡Sé el primero en opinar!</p>
     {% endif %}

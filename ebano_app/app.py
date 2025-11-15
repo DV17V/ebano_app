@@ -1,29 +1,213 @@
 # ============================================================
 # app.py  |  ÉBANO — Fase 1: Login / Registro / Tienda
+#          COP -> USD (API configurable via .env) - Cache 12h
 # ============================================================
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+import time
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, make_response
 from flask_login import (
     LoginManager, login_user, logout_user,
     login_required, UserMixin, current_user
 )
 from dotenv import load_dotenv
 import os
+import requests
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, IntegerField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, NumberRange
 from bd_config import get_connection
 import bcrypt
 
+# -----------------------
+# Cargar variables .env
+# -----------------------
+load_dotenv()
+
 # ------------------------------------------------------------
 # CONFIGURACIÓN FLASK
 # ------------------------------------------------------------
 app = Flask(__name__)
-app.secret_key = os.getenv("clave_segura_ebano", "DB_PASS" )  # reemplázala por una clave real (en .env si prefieres)
-app.config['WTF_CSRF_SECRET_KEY'] = "clave_segura_ebano"
+# SECRET: usa variable de entorno si existe, si no usa valor por defecto (cambiar en producción)
+app.secret_key = os.getenv("SECRET_KEY", os.getenv("clave_segura_ebano", "clave_segura_ebano_default"))
+app.config['WTF_CSRF_SECRET_KEY'] = os.getenv("WTF_CSRF_SECRET_KEY", app.secret_key)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
+
+# ------------------------------------------------------------
+# CACHE y CONFIGURACIÓN DE TASA (COP -> USD)
+# ------------------------------------------------------------
+# TTL por defecto 12 horas (en segundos)
+EXCHANGE_TTL_SECONDS = int(os.getenv("EXCHANGE_TTL_SECONDS", 60 * 60 * 12))
+EXCHANGE_API_URL = os.getenv("EXCHANGE_API_URL", "https://api.exchangerate.host/latest")
+EXCHANGE_API_KEY = os.getenv("CURRENCY_API_KEY", os.getenv("EXCHANGE_API_KEY", None))
+EXCHANGE_REQUEST_TIMEOUT = int(os.getenv("EXCHANGE_REQUEST_TIMEOUT", 8))
+
+# Caché simple en memoria
+_app_exchange_cache = {"timestamp": 0.0, "cop_to_usd": None, "usd_to_cop": None}
+
+# -------------------------
+# Helpers de precios y filtros
+# -------------------------
+def parse_price_db(value):
+    """
+    Normaliza valores provenientes de la BD a Decimal (COP).
+    Soporta int, float, Decimal, o strings con formatos comunes.
+    """
+    if value is None:
+        return Decimal(0)
+    if isinstance(value, Decimal):
+        return value
+    if isinstance(value, (int, float)):
+        return Decimal(str(value))
+    s = str(value).strip()
+    # Manejar formatos "42.000,00", "42.000", "42,000.00", "42000"
+    try:
+        # caso "42.000,00" -> reemplazar '.' miles y ',' decimal -> "42000.00"
+        if "." in s and "," in s and s.rfind(",") > s.rfind("."):
+            s = s.replace(".", "").replace(",", ".")
+        else:
+            # caso "42.000" (separador de miles) -> eliminar puntos si after part length == 3
+            if s.count(".") == 1 and s.count(",") == 0:
+                after = s.split(".")[1]
+                if len(after) == 3:
+                    s = s.replace(".", "")
+            # caso "42,000" -> eliminar coma si es separador de miles
+            if s.count(",") == 1 and s.count(".") == 0:
+                after = s.split(",")[1]
+                if len(after) == 3:
+                    s = s.replace(",", "")
+                else:
+                    # "42000,00" o "42000.00"
+                    s = s.replace(",", ".")
+    except Exception:
+        pass
+    # quitar cualquier caracter no-numérico salvo punto y signo negativo
+    cleaned = "".join(ch for ch in s if ch.isdigit() or ch in ".-")
+    if cleaned in ("", ".", "-"):
+        return Decimal(0)
+    try:
+        return Decimal(cleaned)
+    except InvalidOperation:
+        # fallback: extraer dígitos
+        digits = "".join(ch for ch in cleaned if ch.isdigit())
+        return Decimal(digits) if digits else Decimal(0)
+
+
+def format_cop(value):
+    """
+    Formato COP para admin: 42000 -> "42.000"
+    """
+    try:
+        d = parse_price_db(value)
+    except Exception:
+        d = Decimal(0)
+    amount = int(d.quantize(Decimal('1')))
+    s = f"{amount:,}".replace(",", ".")
+    return s
+
+
+def get_cop_to_usd_rate_no_fallback():
+    """
+    Obtiene la tasa COP -> USD desde la API configurada.
+    NO devuelve fallback; si falla, lanza RuntimeError.
+    Espera que la API devuelva JSON con 'rates' y 'USD' OR una estructura similar.
+    Usa EXCHANGE_API_URL y (opcional) EXCHANGE_API_KEY.
+    """
+    now = time.time()
+    # cache
+    if _app_exchange_cache["cop_to_usd"] is not None and (now - _app_exchange_cache["timestamp"]) < EXCHANGE_TTL_SECONDS:
+        return Decimal(str(_app_exchange_cache["cop_to_usd"])), Decimal(str(_app_exchange_cache["usd_to_cop"]))
+
+    # Preparar request
+    params = {"base": "COP", "symbols": "USD"}
+    headers = {}
+    # Si se definió una API KEY en .env, incluirla según convenio 'access_key' (muchos proveedores usan ese nombre).
+    if EXCHANGE_API_KEY:
+        # incluir como param access_key si no está ya
+        params["access_key"] = EXCHANGE_API_KEY
+
+    try:
+        resp = requests.get(EXCHANGE_API_URL, params=params, timeout=EXCHANGE_REQUEST_TIMEOUT)
+        resp.raise_for_status()
+        data = resp.json()
+        # buscar la tasa en distintas estructuras
+        rate = None
+        # Estructura más común: { "rates": { "USD": 0.00027 }, ... }
+        if isinstance(data, dict) and "rates" in data and "USD" in data["rates"]:
+            rate = data["rates"]["USD"]
+        # Algunas APIs retornan directamente "USD": value in root
+        elif isinstance(data, dict) and "USD" in data:
+            rate = data["USD"]
+        # Si no encontramos, lanzar
+        if rate is None:
+            raise RuntimeError("Respuesta inválida de la API de tasas: campo 'USD' ausente.")
+        # normalizar y guardar en cache
+        cop_to_usd = Decimal(str(rate))
+        if cop_to_usd == 0:
+            raise RuntimeError("Tasa COP->USD inválida (cero).")
+        usd_to_cop = (Decimal('1') / cop_to_usd).quantize(Decimal('0.0001'))
+        _app_exchange_cache["timestamp"] = now
+        _app_exchange_cache["cop_to_usd"] = float(cop_to_usd)
+        _app_exchange_cache["usd_to_cop"] = float(usd_to_cop)
+        print("🔁 Tasa COP->USD actualizada desde API:", cop_to_usd)
+        return cop_to_usd, usd_to_cop
+    except requests.RequestException as re:
+        raise RuntimeError(f"Error HTTP al obtener tasa (requests): {re}") from re
+    except ValueError as ve:
+        raise RuntimeError(f"Error al parsear respuesta de la API: {ve}") from ve
+    except Exception as e:
+        raise RuntimeError(f"Error inesperado al obtener tasa: {e}") from e
+
+
+def cop_to_usd_decimal(cop_value):
+    """
+    Convierte un valor en COP (Decimal/int/str) a Decimal USD con 2 decimales.
+    Usa la tasa obtenida por get_cop_to_usd_rate_no_fallback.
+    """
+    cop_dec = parse_price_db(cop_value)
+    cop_to_usd, _ = get_cop_to_usd_rate_no_fallback()
+    usd = (cop_dec * cop_to_usd).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    return usd
+
+
+def format_usd(value):
+    """
+    Para mostrar en plantillas: recibe valor en COP (o Decimal) y devuelve "$10.95 USD"
+    Si hay error al obtener tasa, lanza y el caller deberá manejarlo o la plantilla mostrará fallback.
+    """
+    try:
+        usd = cop_to_usd_decimal(value)
+        formatted = "${:,.2f} USD".format(float(usd))
+        return formatted
+    except Exception as e:
+        # No usar fallback silencioso: imprimimos error y devolvemos mensaje claro
+        print("⚠️ format_usd error:", e)
+        return "Tarifa USD no disponible"
+    # Registrar filtros Jinja
+app.jinja_env.filters['cop'] = format_cop
+app.jinja_env.filters['usd'] = format_usd
+
+# --- Ruta de prueba para obtener la tasa (usa la función que NO usa fallback) ---
+@app.route("/api/rate")
+def api_rate():
+    """
+    Devuelve JSON con la tasa actual COP->USD y USD->COP.
+    Si la API externa falla, responde 502 con mensaje claro y no devuelbe fallback.
+    """
+    try:
+        cop_to_usd_dec, usd_to_cop_dec = get_cop_to_usd_rate_no_fallback()
+        return jsonify({
+            "cop_to_usd": float(cop_to_usd_dec),
+            "usd_to_cop": float(usd_to_cop_dec),
+            "cached_at": _app_exchange_cache["timestamp"]
+        })
+    except RuntimeError as err:
+        msg = str(err)
+        print("❌ fetch_usd_cop_rate() error:", msg)
+        return make_response(jsonify({"error": "No se pudo obtener la tasa USD/COP", "detail": msg}), 502)
+
 
 # ------------------------------------------------------------
 # MODELO DE USUARIO PARA FLASK-LOGIN
@@ -35,29 +219,32 @@ class Usuario(UserMixin):
         self.correo = correo
         self.rol = rol
 
-# -------------------------
-# RESEÑAS - CRUD para clientes
-# -------------------------
-class ReseñaForm(FlaskForm):
-    comentario = TextAreaField("Comentario", validators=[DataRequired(), Length(min=5, max=1000)])
-    calificacion = IntegerField("Calificación (1-5)", validators=[DataRequired(), NumberRange(min=1, max=5)])
-    submit = SubmitField("Guardar reseña")
-
-# Cargar usuario desde la BD por id
+# Cargar usuario por id (flask-login)
 @login_manager.user_loader
 def load_user(user_id):
     conn = get_connection()
-    if conn:
-        query = "SELECT id, nombre_usuario, correo, rol FROM usuarios WHERE id = :id;"
-        result = conn.run(query, id=user_id)
-        conn.close()
-        if result:
-            u = result[0]
-            return Usuario(u[0], u[1], u[2], u[3])
+    if not conn:
+        return None
+    try:
+        q = "SELECT id, nombre_usuario, correo, rol, nombre_completo FROM usuarios WHERE id = :id;"
+        res = conn.run(q, id=user_id)
+        if res:
+            u = res[0]
+            user = Usuario(u[0], u[1], u[2], u[3])
+            try:
+                user.nombre_completo = u[4] or u[1]
+            except Exception:
+                user.nombre_completo = u[1]
+            return user
+    except Exception as e:
+        print("Error load_user:", e)
+    finally:
+        try: conn.close()
+        except: pass
     return None
 
 # ------------------------------------------------------------
-# FORMULARIOS (WTForms)
+# WTForms (Login / Registro / Reseña)
 # ------------------------------------------------------------
 class LoginForm(FlaskForm):
     correo = StringField("Correo electrónico", validators=[DataRequired(), Email()])
@@ -73,17 +260,19 @@ class RegistroForm(FlaskForm):
     direccion = StringField("Dirección", validators=[DataRequired(), Length(min=5)])
     submit = SubmitField("Registrarse")
 
+class ResenaForm(FlaskForm):
+    comentario = TextAreaField("Comentario", validators=[DataRequired(), Length(min=5, max=1000)])
+    calificacion = IntegerField("Calificación (1-5)", validators=[DataRequired(), NumberRange(min=1, max=5)])
+    submit = SubmitField("Guardar reseña")
+
 # ------------------------------------------------------------
-# RUTAS PÚBLICAS
+# RUTAS PÚBLICAS y TIENDA (cliente ve USD)
 # ------------------------------------------------------------
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
-# ------------------------------------------------------------
-# TIENDA
-# ------------------------------------------------------------
 @app.route("/tienda")
 def tienda():
     conn = get_connection()
@@ -91,36 +280,36 @@ def tienda():
         flash("Error de conexión con la base de datos.", "danger")
         return redirect(url_for("index"))
 
+    productos = []
     try:
-        query = """
-            SELECT id, nombre, descripcion, precio, imagen_url, stock
-            FROM productos;
-        """
-        result = conn.run(query)
-        conn.close()
-
-        # Convertir filas a diccionarios legibles
-        productos = []
-        for row in result:
+        q = "SELECT id, nombre, descripcion, precio, imagen_url, stock FROM productos;"
+        res = conn.run(q)
+        for r in res:
+            # precio guardado en BD en COP; mantenemos entero o Decimal según venga
+            try:
+                precio_cop = parse_price_db(r[3]).quantize(Decimal('1'))
+                precio_cop_int = int(precio_cop)
+            except Exception:
+                precio_cop_int = 0
             productos.append({
-                "id": row[0],
-                "nombre": row[1],
-                "descripcion": row[2],
-                "precio": row[3],
-                "imagen_url": row[4],
-                "stock": row[5]
+                "id": r[0],
+                "nombre": r[1],
+                "descripcion": r[2],
+                "precio": precio_cop_int,  # COP entero
+                "imagen_url": r[4],
+                "stock": r[5]
             })
-
-        # Mostrar precios solo si el usuario está autenticado
-        mostrar_precios = current_user.is_authenticated
-
-        return render_template("tienda.html", productos=productos, mostrar_precios=mostrar_precios)
-
     except Exception as e:
         print("❌ Error al cargar tienda:", e)
-        conn.close()
         flash("Error al mostrar los productos.", "danger")
-        return redirect(url_for("index"))
+    finally:
+        try: conn.close()
+        except: pass
+
+    # mostrar precios solo a usuarios autenticados (cliente)
+    mostrar_precios = current_user.is_authenticated
+    return render_template("tienda.html", productos=productos, mostrar_precios=mostrar_precios)
+
 
 # ------------------------------------------------------------
 # REGISTRO
@@ -138,20 +327,14 @@ def registro():
         if not conn:
             flash("Error de conexión con la base de datos.", "danger")
             return redirect(url_for("registro"))
-
         try:
-            # 1) Verificar si ya existe el correo
             check_q = "SELECT id FROM usuarios WHERE correo = :correo;"
             existing = conn.run(check_q, correo=correo)
             if existing:
                 flash("Ya existe una cuenta con ese correo.", "warning")
                 conn.close()
                 return redirect(url_for("registro"))
-
-            # 2) Hashear la contraseña con bcrypt
             hashed = bcrypt.hashpw(form.contraseña.data.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-
-            # 3) Insertar usuario (usar parámetros con nombre, compatibles con pg8000)
             insert_q = """
                 INSERT INTO usuarios
                 (nombre_usuario, correo, contraseña, rol, nombre_completo, telefono, direccion)
@@ -159,50 +342,35 @@ def registro():
                 RETURNING id;
             """
             nombre_usuario = correo.split("@")[0]
-
-            result = conn.run(
-                insert_q,
-                nombre_usuario=nombre_usuario,
-                correo=correo,
-                contraseña=hashed,
-                rol="cliente",
-                nombre_completo=nombre_completo,
-                telefono=telefono,
-                direccion=direccion
-            )
-
-            # 4) ✅ IMPORTANTÍSIMO: confirmar la transacción antes de cerrar
+            res = conn.run(insert_q,
+                           nombre_usuario=nombre_usuario,
+                           correo=correo,
+                           contraseña=hashed,
+                           rol="cliente",
+                           nombre_completo=nombre_completo,
+                           telefono=telefono,
+                           direccion=direccion)
             conn.commit()
-
-            new_id = result[0][0] if result else None
+            new_id = res[0][0] if res else None
             conn.close()
-
             flash("Cuenta creada exitosamente. Ya puedes iniciar sesión.", "success")
             return redirect(url_for("login"))
-
         except Exception as e:
-            # En caso de fallo, hacer rollback para dejar la BD consistente
-            try:
-                conn.rollback()
-            except Exception:
-                pass
-            conn.close()
+            try: conn.rollback()
+            except: pass
+            try: conn.close()
+            except: pass
             print("❌ Error al registrar usuario:", e)
             flash("Ocurrió un error interno al registrar. Revisa la consola.", "danger")
             return redirect(url_for("registro"))
-
     return render_template("registro.html", form=form)
+
 
 # ------------------------------------------------------------
 # LOGIN
 # ------------------------------------------------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """
-    Login seguro — reemplaza la versión previa.
-    Usa pg8000 placeholders con nombre, attach de nombre_completo al objeto Usuario,
-    login_user() y redirección por rol a dashboard correspondiente.
-    """
     form = LoginForm()
     if form.validate_on_submit():
         correo = form.correo.data.lower().strip()
@@ -210,9 +378,7 @@ def login():
         if not conn:
             flash("Error de conexión con la base de datos.", "danger")
             return redirect(url_for("login"))
-
         try:
-            # Obtener datos del usuario (incluye nombre_completo)
             query = """
                 SELECT id, nombre_usuario, correo, contraseña, rol, nombre_completo
                 FROM usuarios
@@ -220,36 +386,29 @@ def login():
             """
             result = conn.run(query, correo=correo)
             conn.close()
-
             if not result:
                 flash("Correo o contraseña incorrectos.", "danger")
                 return redirect(url_for("login"))
-
             user_data = result[0]
             stored_hash_raw = user_data[3]
-            # stored_hash_raw puede venir como str; asegurar bytes
             if isinstance(stored_hash_raw, str):
                 stored_hash = stored_hash_raw.encode("utf-8")
             else:
                 stored_hash = stored_hash_raw
-
-            # Verificar contraseña
             if bcrypt.checkpw(form.contraseña.data.encode("utf-8"), stored_hash):
-                # Crear objeto Usuario para flask-login
                 user = Usuario(user_data[0], user_data[1], user_data[2], user_data[4])
-                # Adjuntar nombre_completo si está disponible
                 try:
                     user.nombre_completo = user_data[5] or user_data[1]
                 except Exception:
                     user.nombre_completo = user_data[1]
-
                 login_user(user)
+                # sincronizar con session (tu código lo requiere)
+                session["usuario_id"] = user.id
+                session["rol"] = user.rol
+                session["usuario_nombre"] = getattr(user, "nombre_completo", user.nombre_usuario)
+                session.modified = True
                 flash("Inicio de sesión exitoso.", "success")
-
-                # DEBUG: registrar en consola (útil para verificar flujo)
                 print(f"✅ Login correcto: {user.correo} (rol={getattr(user,'rol',None)})")
-
-                # Redirección por rol (segura, sin suposiciones)
                 rol_lower = (getattr(user, "rol", "") or "").lower()
                 if rol_lower == "admin":
                     return redirect(url_for("dashboard_admin"))
@@ -259,18 +418,12 @@ def login():
                 flash("Correo o contraseña incorrectos.", "danger")
                 print("❌ Contraseña inválida para:", correo)
                 return redirect(url_for("login"))
-
         except Exception as e:
-            # Asegurar cierre / logging y no romper la app con trace innecesario
-            try:
-                conn.close()
-            except Exception:
-                pass
+            try: conn.close()
+            except: pass
             print("❌ Error durante el proceso de login:", e)
             flash("Error interno en el login. Revisa la consola.", "danger")
             return redirect(url_for("login"))
-
-    # GET o formulario no validado
     return render_template("login.html", form=form)
 
 
@@ -280,35 +433,39 @@ def login():
 @app.route("/logout")
 @login_required
 def logout():
-    logout_user()
+    try:
+        logout_user()
+    except Exception as e:
+        print("⚠️ Warning logout_user():", e)
+    session.pop("usuario_id", None)
+    session.pop("rol", None)
+    session.pop("usuario_nombre", None)
+    session.pop("carrito", None)
+    session.modified = True
     flash("Sesión cerrada correctamente.", "info")
     return redirect(url_for("index"))
 
+
 # ------------------------------------------------------------
-# PANEL_CLIENTE
+# PANEL_CLIENTE y SUBRUTAS (respetando tus rutas)
 # ------------------------------------------------------------
 @app.route("/dashboard_usuario")
 @login_required
 def dashboard_usuario():
-    # Solo los usuarios con rol cliente pueden acceder
     if current_user.rol != "cliente":
         flash("Acceso restringido al panel de clientes.", "danger")
         return redirect(url_for("index"))
-
     return render_template("dashboard_usuario.html", usuario=current_user)
 
-# -----------------------------
-# SUBRUTAS DEL DASHBOARD CLIENTE
-# -----------------------------
+
 @app.route("/pedidos")
 @login_required
 def pedidos():
-    # Solo clientes
     if current_user.rol != "cliente":
         flash("Acceso no autorizado.", "danger")
         return redirect(url_for("index"))
-    # Por ahora plantilla estática / estructura
     return render_template("pedidos.html", usuario=current_user)
+
 
 @app.route("/historial")
 @login_required
@@ -318,25 +475,13 @@ def historial():
         return redirect(url_for("index"))
     return render_template("historial.html", usuario=current_user)
 
-# -------------------------
-# RESEÑAS - CRUD para clientes
-# -------------------------
-from wtforms import TextAreaField, IntegerField
-from wtforms.validators import NumberRange
-
-class ResenaForm(FlaskForm):
-    comentario = TextAreaField("Comentario", validators=[DataRequired(), Length(min=5, max=1000)])
-    calificacion = IntegerField("Calificación (1-5)", validators=[DataRequired(), NumberRange(min=1, max=5)])
-    submit = SubmitField("Guardar reseña")
 
 @app.route("/resenas")
 @login_required
 def resenas():
-    # Lista las reseñas del usuario (panel)
     if current_user.rol != "cliente":
         flash("Acceso no autorizado.", "danger")
         return redirect(url_for("index"))
-
     conn = get_connection()
     reseñas = []
     try:
@@ -363,8 +508,8 @@ def resenas():
     finally:
         try: conn.close()
         except: pass
-
     return render_template("resenas.html", reseñas=reseñas)
+
 
 @app.route("/resenas/crear/<int:product_id>", methods=["GET", "POST"])
 @login_required
@@ -372,9 +517,7 @@ def crear_resena(product_id):
     if current_user.rol != "cliente":
         flash("Acceso no autorizado.", "danger")
         return redirect(url_for("index"))
-
     form = ResenaForm()
-    # Obtener nombre de producto para mostrar en la plantilla
     conn = get_connection()
     producto = None
     try:
@@ -385,11 +528,9 @@ def crear_resena(product_id):
     finally:
         try: conn.close()
         except: pass
-
     if not producto:
         flash("Producto no encontrado.", "warning")
         return redirect(url_for("tienda"))
-
     if form.validate_on_submit():
         conn = get_connection()
         try:
@@ -415,327 +556,360 @@ def crear_resena(product_id):
         finally:
             try: conn.close()
             except: pass
-
     return render_template("resena_form.html", form=form, producto_nombre=producto[1] if producto else "")
 
-@app.route("/resenas/editar/<int:id>", methods=["GET", "POST"])
-@login_required
-def editar_resena(id):
-    if current_user.rol != "cliente":
-        flash("Acceso no autorizado.", "danger")
-        return redirect(url_for("index"))
 
-    conn = get_connection()
-    try:
-        res = conn.run("SELECT id, id_usuario, id_producto, comentario, calificacion FROM reseñas WHERE id = :id;", id=id)
-        if not res:
-            flash("Reseña no encontrada.", "warning")
-            return redirect(url_for("resenas"))
-        row = res[0]
-        # Sólo autor puede editar
-        if row[1] != current_user.id:
-            flash("No tienes permisos para editar esta reseña.", "danger")
-            return redirect(url_for("resenas"))
-        # cargar form con datos existentes
-        form = ResenaForm(comentario=row[3], calificacion=row[4])
-    except Exception as e:
-        print("❌ Error al cargar reseña para editar:", e)
-        flash("Error interno.", "danger")
-        try: conn.close()
-        except: pass
-        return redirect(url_for("resenas"))
-    finally:
-        try: conn.close()
-        except: pass
-
-    if form.validate_on_submit():
-        conn = get_connection()
-        try:
-            upd = """
-                UPDATE reseñas SET comentario = :comentario, calificacion = :calificacion, fecha = CURRENT_TIMESTAMP
-                WHERE id = :id;
-            """
-            conn.run(upd, comentario=form.comentario.data.strip(), calificacion=int(form.calificacion.data), id=id)
-            conn.commit()
-            flash("Reseña actualizada.", "success")
-            return redirect(url_for("resenas"))
-        except Exception as e:
-            print("❌ Error al actualizar reseña:", e)
-            try: conn.rollback()
-            except: pass
-            flash("No se pudo actualizar la reseña.", "danger")
-        finally:
-            try: conn.close()
-            except: pass
-
-    return render_template("resena_form.html", form=form, editar=True)
-
-@app.route("/resenas/borrar/<int:id>", methods=["POST"])
-@login_required
-def borrar_resena(id):
-    if current_user.rol != "cliente":
-        flash("Acceso no autorizado.", "danger")
-        return redirect(url_for("index"))
-
-    conn = get_connection()
-    try:
-        res = conn.run("SELECT id, id_usuario FROM reseñas WHERE id = :id;", id=id)
-        if not res:
-            flash("Reseña no encontrada.", "warning")
-            conn.close()
-            return redirect(url_for("resenas"))
-        if res[0][1] != current_user.id:
-            flash("No tienes permiso para eliminar esta reseña.", "danger")
-            conn.close()
-            return redirect(url_for("resenas"))
-
-        conn.run("DELETE FROM reseñas WHERE id = :id;", id=id)
-        conn.commit()
-        flash("Reseña eliminada.", "info")
-    except Exception as e:
-        print("❌ Error al borrar reseña:", e)
-        try: conn.rollback()
-        except: pass
-        flash("No se pudo eliminar la reseña.", "danger")
-    finally:
-        try: conn.close()
-        except: pass
-
-    return redirect(url_for("resenas"))
-
-
-# ------------------------------------------------------------
-# GESTIONAR PERFIL (CLIENTE)
-# ------------------------------------------------------------
-@app.route("/perfil")
+# ================================
+# PERFIL DEL USUARIO (EDITAR)
+# ================================
+@app.route("/perfil", methods=["GET", "POST"])
 @login_required
 def perfil():
-    if current_user.rol != "cliente":
-        flash("Acceso no autorizado.", "danger")
-        return redirect(url_for("index"))
-    return render_template("perfil.html", usuario=current_user)
+    conn = get_connection()
+    if not conn:
+        flash("Error de conexión con la base de datos.", "danger")
+        return redirect(url_for("dashboard_usuario"))
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        telefono = request.form.get("telefono", "").strip()
+        direccion = request.form.get("direccion", "").strip()
+        if not nombre:
+            flash("El nombre no puede estar vacío.", "warning")
+            try: conn.close()
+            except: pass
+            return redirect(url_for("perfil"))
+        try:
+            update_q = """
+                UPDATE usuarios
+                SET nombre_completo = :nombre,
+                    telefono = :telefono,
+                    direccion = :direccion
+                WHERE id = :id;
+            """
+            conn.run(update_q,
+                     nombre=nombre,
+                     telefono=telefono,
+                     direccion=direccion,
+                     id=current_user.id)
+            conn.commit()
+            session["usuario_nombre"] = nombre
+            try:
+                current_user.nombre_completo = nombre
+            except Exception:
+                pass
+            flash("Perfil actualizado correctamente.", "success")
+            try: conn.close()
+            except: pass
+            return redirect(url_for("perfil"))
+        except Exception as e:
+            print("❌ Error al actualizar perfil:", e)
+            try:
+                conn.rollback()
+            except:
+                pass
+            flash("No se pudo actualizar el perfil. Revisa la consola.", "danger")
+            try: conn.close()
+            except: pass
+            return redirect(url_for("perfil"))
+
+    try:
+        q = """
+            SELECT nombre_completo, correo, telefono, direccion
+            FROM usuarios
+            WHERE id = :id;
+        """
+        res = conn.run(q, id=current_user.id)
+        datos = {"nombre": "", "correo": "", "telefono": "", "direccion": ""}
+        if res and len(res) > 0:
+            row = res[0]
+            datos["nombre"] = row[0] or ""
+            datos["correo"] = row[1] or ""
+            datos["telefono"] = row[2] or ""
+            datos["direccion"] = row[3] or ""
+    except Exception as e:
+        print("❌ Error al cargar perfil:", e)
+        flash("Error cargando datos del perfil.", "danger")
+        try: conn.close()
+        except: pass
+        return redirect(url_for("dashboard_usuario"))
+    finally:
+        try: conn.close()
+        except: pass
+
+    return render_template("perfil.html", datos=datos)
 
 
-# ===========================
-# DETALLE DE PRODUCTO + RESEÑAS
-# ===========================
+# ------------------------------------------------------------
+# DETALLE DE PRODUCTO + RESEÑAS (cliente ve USD)
+# ------------------------------------------------------------
 @app.route("/producto/<int:id>")
 def producto(id):
     conn = get_connection()
     producto = None
-    resenas = []
-
+    reseñas = []
     try:
-        # Obtener información del producto
         res = conn.run(
-            "SELECT id, nombre, descripcion, precio, imagen_url FROM productos WHERE id = :id;",
+            "SELECT id, nombre, descripcion, precio, imagen_url, stock FROM productos WHERE id = :id;",
             id=id
         )
         if res:
             p = res[0]
+            precio_cop = parse_price_db(p[3]).quantize(Decimal('1'))
             producto = {
                 "id": p[0],
                 "nombre": p[1],
                 "descripcion": p[2],
-                "precio": float(p[3]) if p[3] else 0.0,
-                "imagen_url": p[4]
+                "precio": int(precio_cop),
+                "imagen_url": p[4],
+                "stock": p[5] if len(p) > 5 else None
             }
-
-        # ✅ Obtener reseñas vinculadas correctamente según tu tabla real
-        resenas_query = """
+        # cargar reseñas
+        res_r = conn.run("""
             SELECT r.comentario, u.nombre_completo, r.fecha, r.calificacion
-            FROM resenas r
+            FROM reseñas r
             JOIN usuarios u ON r.id_usuario = u.id
             WHERE r.id_producto = :id
             ORDER BY r.fecha DESC;
-        """
-        resenas = conn.run(resenas_query, id=id)
-
-        print(f"🟤 Reseñas encontradas: {len(resenas)}")
-
+        """, id=id)
+        for rr in res_r:
+            reseñas.append({
+                "comentario": rr[0],
+                "nombre_completo": rr[1],
+                "fecha": rr[2],
+                "calificacion": rr[3]
+            })
     except Exception as e:
         print("❌ Error al obtener producto o reseñas:", e)
-
     finally:
-        try:
-            conn.close()
-        except:
-            pass
-
+        try: conn.close()
+        except: pass
     mostrar_precios = current_user.is_authenticated and current_user.rol == "cliente"
-
-    return render_template(
-        "producto.html",
-        producto=producto,
-        reseñas=resenas,
-        mostrar_precios=mostrar_precios
-    )
+    return render_template("producto.html", producto=producto, reseñas=reseñas, mostrar_precios=mostrar_precios)
 
 
 # ------------------------------------------------------------
-# DASHBOARD ADMIN 
+# DASHBOARD ADMIN (admin ve COP)
 # ------------------------------------------------------------
 @app.route("/dashboard_admin")
 @login_required
 def dashboard_admin():
-    # Verificar que el usuario tenga rol de admin
     if current_user.rol != "admin":
         flash("No tienes permisos para acceder a esta sección.", "danger")
         return redirect(url_for("index"))
-
-    # Datos simulados (luego se conectarán a la BD)
-    stats = {
-        "total_usuarios": 0,
-        "total_productos": 0,
-        "total_pedidos": 0,
-        "reseñas_pendientes": 0
-    }
-
-    return render_template("dashboard_admin.html", stats=stats)
-
-# ==========================================
-# CARRITO DE COMPRAS (fase inicial)
-# ==========================================
-
-@app.route("/carrito")
-def carrito():
-    carrito = session.get("carrito", [])
-    total = sum(item["precio"] * item["cantidad"] for item in carrito)
-    return render_template("carrito.html", carrito=carrito, total=total)
-
-@app.route("/agregar_carrito/<int:producto_id>")
-@login_required
-def agregar_carrito(producto_id):
     conn = get_connection()
+    products = []
     try:
-        res = conn.run(
-            "SELECT id, nombre, precio, imagen_url FROM productos WHERE id = :id;",
-            id=producto_id
-        )
+        res = conn.run("SELECT id, nombre, precio, stock FROM productos ORDER BY id;")
+        for r in res:
+            products.append({
+                "id": r[0],
+                "nombre": r[1],
+                "precio": int(parse_price_db(r[2]).quantize(Decimal('1'))),
+                "stock": r[3]
+            })
+    except Exception as e:
+        print("❌ Error dashboard_admin:", e)
+    finally:
+        try: conn.close()
+        except: pass
+    stats = {"total_usuarios": 0, "total_productos": len(products), "total_pedidos": 0, "reseñas_pendientes": 0}
+    return render_template("dashboard_admin.html", stats=stats, products=products)
 
-        if not res:
-            print(f"⚠️ Producto con id={producto_id} no encontrado.")
-            return redirect(url_for("tienda"))
 
-        p = res[0]
-        producto = {
-            "id": p[0],
-            "nombre": p[1],
-            "precio": float(p[2]),
-            "imagen_url": p[3],
-            "cantidad": 1
-        }
-
+# ==========================================
+# CARRITO DE COMPRAS (cliente ve USD in display)
+# ==========================================
+@app.route("/carrito", methods=["GET", "POST"])
+def carrito():
+    if request.method == "POST":
         carrito = session.get("carrito", [])
-        print(f"🛒 Carrito actual antes de agregar: {carrito}")
-
-        # Verifica si ya existe
+        changed = False
         for item in carrito:
-            if item["id"] == producto_id:
-                item["cantidad"] += 1
-                print(f"🔁 Incrementando cantidad de {item['nombre']} a {item['cantidad']}")
-                break
-        else:
-            carrito.append(producto)
-            print(f"✅ Producto agregado: {producto['nombre']}")
-
+            key = f"qty_{item['id']}"
+            if key in request.form:
+                try:
+                    new_q = int(request.form.get(key, item.get("cantidad", 1)))
+                    if new_q <= 0:
+                        item["cantidad"] = 0
+                    else:
+                        item["cantidad"] = new_q
+                    changed = True
+                except Exception:
+                    pass
+        carrito = [i for i in carrito if int(i.get("cantidad", 1)) > 0]
         session["carrito"] = carrito
         session.modified = True
-        print(f"🟢 Carrito actualizado: {session['carrito']}")
+        if changed:
+            flash("Carrito actualizado.", "success")
+        return redirect(url_for("carrito"))
+    carrito = session.get("carrito", [])
+    total = sum(int(item["precio"]) * int(item["cantidad"]) for item in carrito)
+    return render_template("carrito.html", carrito=carrito, total=total)
 
+
+@app.route("/agregar_carrito/<int:producto_id>", methods=["GET", "POST"])
+@login_required
+def agregar_carrito(producto_id):
+    qty = 1
+    try:
+        if request.method == "POST":
+            qty = int(request.form.get("cantidad", 1))
+        else:
+            qty = int(request.args.get("cantidad", 1))
+    except Exception:
+        qty = 1
+    if qty < 1:
+        qty = 1
+    conn = get_connection()
+    try:
+        res = conn.run("SELECT id, nombre, precio, imagen_url, stock FROM productos WHERE id = :id;", id=producto_id)
+        if not res:
+            flash("Producto no encontrado.", "warning")
+            return redirect(url_for("tienda"))
+        row = res[0]
+        prod_id = row[0]
+        nombre = row[1]
+        precio_raw = row[2]
+        imagen = row[3]
+        stock = row[4] if len(row) > 4 else None
+        precio_dec = parse_price_db(precio_raw).quantize(Decimal('1'))
+        precio_int = int(precio_dec)
+        if stock is not None:
+            if stock <= 0:
+                flash("Producto sin stock.", "warning")
+                return redirect(url_for("tienda"))
+            if qty > stock:
+                flash(f"Sólo hay {stock} unidades disponibles.", "warning")
+                qty = int(stock)
+        producto = {
+            "id": int(prod_id),
+            "nombre": nombre,
+            "precio": precio_int,  # COP
+            "imagen_url": imagen,
+            "cantidad": int(qty)
+        }
+        carrito = session.get("carrito", [])
+        found = False
+        for item in carrito:
+            if int(item.get("id")) == producto["id"]:
+                item["cantidad"] = int(item.get("cantidad", 1)) + producto["cantidad"]
+                found = True
+                break
+        if not found:
+            carrito.append(producto)
+        session["carrito"] = carrito
+        session.modified = True
+        flash(f"{producto['cantidad']} x {producto['nombre']} agregado(s) al carrito.", "success")
     except Exception as e:
         print("❌ Error al agregar al carrito:", e)
+        flash("No se pudo agregar el producto al carrito.", "danger")
     finally:
-        conn.close()
-
+        try: conn.close()
+        except: pass
     return redirect(url_for("carrito"))
+
 
 @app.route("/vaciar_carrito")
 def vaciar_carrito():
     session["carrito"] = []
+    session.modified = True
     return redirect(url_for("carrito"))
 
-# ==============================
-# CHECKOUT (SIMULACIÓN DE COMPRA)
-# ==============================
 
+# ==============================
+# CHECKOUT (SIMULACIÓN DE COMPRA) - guarda pedidos y descuenta stock
+# ==============================
 @app.route("/checkout", methods=["GET", "POST"])
 def checkout():
-    if "usuario_id" not in session:
-        flash("Debes iniciar sesión para continuar con la compra.")
+    if not current_user.is_authenticated and "usuario_id" not in session:
+        flash("Debes iniciar sesión para continuar.", "warning")
         return redirect(url_for("login"))
-
     carrito = session.get("carrito", [])
     if not carrito:
-        flash("Tu carrito está vacío.")
+        flash("Tu carrito está vacío.", "info")
         return redirect(url_for("tienda"))
-
-    conn = get_connection()
-    if not conn:
-        flash("Error de conexión con la base de datos.")
-        return redirect(url_for("carrito"))
-
-    try:
-        if request.method == "POST":
-            total = sum(item["precio"] * item["cantidad"] for item in carrito)
-            id_usuario = session["usuario_id"]
-
-            # Crear pedido
+    total = sum(int(item["precio"]) * int(item["cantidad"]) for item in carrito)  # total en COP (int)
+    if request.method == "POST":
+        try:
+            conn = get_connection()
+            cursor = conn.cursor()
+            id_usuario = int(session.get("usuario_id") or current_user.get_id())
+            # verificar stock
+            for item in carrito:
+                pid = int(item["id"])
+                q_needed = int(item["cantidad"])
+                row = conn.run("SELECT stock FROM productos WHERE id = :id;", id=pid)
+                stock = row[0][0] if row and row[0] and len(row[0])>0 else None
+                if stock is not None and q_needed > stock:
+                    flash(f"No hay suficiente stock de {item['nombre']}. Disponible: {stock}", "warning")
+                    try: cursor.close()
+                    except: pass
+                    try: conn.close()
+                    except: pass
+                    return redirect(url_for("carrito"))
+            # insertar pedido (nota: columna fecha_pedido en tu BD)
             insert_pedido = """
-                INSERT INTO pedidos (id_usuario, fecha, total, estado)
-                VALUES (:id_usuario, :fecha, :total, :estado)
+                INSERT INTO pedidos (id_usuario, fecha_pedido, total, estado)
+                VALUES (%s, %s, %s, %s)
                 RETURNING id;
             """
-            pedido_result = conn.run(
-                insert_pedido,
-                id_usuario=id_usuario,
-                fecha=datetime.now(),
-                total=total,
-                estado="Pendiente"
-            )
-            id_pedido = pedido_result[0][0]
-
-            # Insertar detalle de pedido
+            cursor.execute(insert_pedido, (id_usuario, datetime.now(), total, "Pendiente"))
+            pedido_id = cursor.fetchone()[0]
+            # insertar detalle y actualizar stock
             insert_detalle = """
-                INSERT INTO detalle_pedidos (id_pedido, id_producto, cantidad, precio_unitario)
-                VALUES (:id_pedido, :id_producto, :cantidad, :precio_unitario);
+                INSERT INTO detalle_pedidos (id_pedido, id_producto, cantidad, subtotal)
+                VALUES (%s, %s, %s, %s);
             """
+            update_stock = "UPDATE productos SET stock = stock - %s WHERE id = %s;"
             for item in carrito:
-                conn.run(
-                    insert_detalle,
-                    id_pedido=id_pedido,
-                    id_producto=item["id"],
-                    cantidad=item["cantidad"],
-                    precio_unitario=item["precio"]
-                )
-
+                pid = int(item["id"])
+                qty = int(item["cantidad"])
+                unit_price = int(item["precio"])
+                subtotal = unit_price * qty
+                cursor.execute(insert_detalle, (pedido_id, pid, qty, subtotal))
+                cursor.execute(update_stock, (qty, pid))
             conn.commit()
-            conn.close()
-
-            # Vaciar carrito
+            try: cursor.close()
+            except: pass
+            try: conn.close()
+            except: pass
+            # vaciar carrito
             session["carrito"] = []
+            session.modified = True
+            flash("Compra realizada con éxito (simulada).", "success")
             return redirect(url_for("checkout_success"))
-
-        else:
-            total = sum(item["precio"] * item["cantidad"] for item in carrito)
-            return render_template("checkout.html", carrito=carrito, total=total)
-
-    except Exception as e:
-        conn.rollback()
-        conn.close()
-        print("❌ Error durante el checkout:", e)
-        flash("Ocurrió un error al procesar el pedido.")
-        return redirect(url_for("carrito"))
+        except Exception as e:
+            print("❌ Error en checkout:", e)
+            try:
+                conn.rollback()
+            except:
+                pass
+            try:
+                cursor.close()
+            except:
+                pass
+            try:
+                conn.close()
+            except:
+                pass
+            flash("Error procesando el pedido.", "danger")
+            return redirect(url_for("carrito"))
+    # GET -> mostrar resumen con total (mostrado en USD para cliente mediante filtro 'usd' en template)
+    return render_template("checkout.html", carrito=carrito, total=total)
 
 
 @app.route("/checkout_success")
 def checkout_success():
-    if "usuario_id" not in session:
+    if not current_user.is_authenticated and "usuario_id" not in session:
+        flash("Debes iniciar sesión para ver esta página.", "warning")
         return redirect(url_for("login"))
     return render_template("checkout_success.html")
+
 
 # ------------------------------------------------------------
 # MAIN
 # ------------------------------------------------------------
 if __name__ == "__main__":
+    # debug=True facilita desarrollo local pero no usar en producción
     app.run(debug=True)

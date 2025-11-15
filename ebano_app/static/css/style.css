@@ -574,6 +574,93 @@ footer {
 }
 
 /* ===========================
+   Perfil — Ébano
+=========================== */
+
+.perfil-seccion {
+  padding: 40px 18px;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: #2b2b2b;
+}
+
+.perfil-container {
+  background: #fff;
+  padding: 28px;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  border: 1px solid rgba(107,66,38,0.06);
+}
+
+.titulo-perfil {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #3d2413;
+  margin-bottom: 6px;
+}
+
+.subtitulo-perfil {
+  color: #6b5b50;
+  margin-bottom: 18px;
+}
+
+/* Flash messages */
+.flash-messages { margin-bottom: 14px; }
+.alert { padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.95rem; }
+.alert-success { background: #ecf9f0; color: #11663a; border: 1px solid rgba(17,102,58,0.08); }
+.alert-danger  { background: #fdecea; color: #8a1f11; border: 1px solid rgba(138,31,17,0.06); }
+.alert-warning { background: #fff7e6; color: #7a5800; border: 1px solid rgba(122,88,0,0.06); }
+
+/* Form layout */
+.form-perfil { display: block; width: 100%; }
+.form-grupo { margin-bottom: 14px; display: flex; flex-direction: column; gap:6px; }
+.form-grupo label { font-weight: 600; color: #4b3023; font-size: 0.95rem; }
+.form-grupo input[type="text"],
+.form-grupo input[type="email"] {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6ded6;
+  background: #fff;
+  font-size: 0.95rem;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+}
+
+/* Two-column block for phone + address */
+.form-grupo.doble { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Buttons */
+.form-acciones { margin-top: 18px; display:flex; gap:12px; align-items:center; }
+.boton-principal {
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: linear-gradient(180deg,#7a4927 0%, #5a3218 100%);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(122,73,39,0.12);
+}
+.boton-principal:hover { transform: translateY(-1px); }
+
+.boton-secundario {
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid #d9d0c8;
+  color: #4b3023;
+  text-decoration: none;
+  display:inline-flex;
+  align-items:center;
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+  .form-grupo.doble { grid-template-columns: 1fr; }
+  .perfil-container { padding: 18px; }
+  .titulo-perfil { font-size: 1.4rem; }
+}
+
+/* ===========================
    RESEÑAS
 =========================== */
 

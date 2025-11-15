@@ -1,22 +1,56 @@
 {% extends "base.html" %}
+
+{% block title %}Mi Perfil | Ébano{% endblock %}
+
 {% block content %}
+<section class="perfil-seccion">
+    <div class="perfil-container">
+        <h1 class="titulo-perfil">Mi Perfil</h1>
+        <p class="subtitulo-perfil">Actualiza tu información personal</p>
 
-<section class="panel-cliente">
-    <div class="panel-header">
-        <h2>Mi perfil</h2>
-        <p>Gestiona tu información personal y tus datos de contacto.</p>
-    </div>
+        <!-- Mostrar mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
 
-    <div class="panel-content">
-        <div class="info-box">
-            <p><strong>Nombre:</strong> {{ usuario.nombre_completo }}</p>
-            <p><strong>Correo:</strong> {{ usuario.correo }}</p>
-            <p><strong>Teléfono:</strong> {{ usuario.telefono or "No registrado" }}</p>
-            <p><strong>Dirección:</strong> {{ usuario.direccion or "No registrada" }}</p>
-        </div>
-        <br>
-        <a href="#" class="btn-artesanal">Editar información</a>
+        <form method="post" action="{{ url_for('perfil') }}" class="form-perfil">
+            <!-- Si usas Flask-WTF/CSRF token, puedes incluir {{ form.csrf_token }} en vez del input manual -->
+            {% if csrf_token is defined %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {% endif %}
+
+            <div class="form-grupo">
+                <label for="nombre">Nombre completo</label>
+                <input id="nombre" name="nombre" type="text" required value="{{ datos.nombre }}">
+            </div>
+
+            <div class="form-grupo">
+                <label for="correo">Correo electrónico</label>
+                <input id="correo" name="correo" type="email" value="{{ datos.correo }}" readonly>
+            </div>
+
+            <div class="form-grupo doble">
+                <div>
+                    <label for="telefono">Teléfono</label>
+                    <input id="telefono" name="telefono" type="text" value="{{ datos.telefono }}">
+                </div>
+                <div>
+                    <label for="direccion">Dirección</label>
+                    <input id="direccion" name="direccion" type="text" value="{{ datos.direccion }}">
+                </div>
+            </div>
+
+            <div class="form-acciones">
+                <button type="submit" class="boton-principal">Guardar cambios</button>
+                <a href="{{ url_for('dashboard_usuario') }}" class="boton-secundario">Volver al panel</a>
+            </div>
+        </form>
     </div>
 </section>
-
 {% endblock %}
