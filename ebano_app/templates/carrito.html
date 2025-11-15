@@ -5,6 +5,20 @@
 <section class="carrito">
     <h1 class="titulo-carrito">Mi Carrito</h1>
 
+    <!-- ========================================
+         BLOQUE DE MENSAJES FLASH (NUEVO)
+    ========================================= -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <!-- ======================================== -->
+
     {% if carrito and carrito|length > 0 %}
 
         <form method="POST" action="{{ url_for('carrito') }}">

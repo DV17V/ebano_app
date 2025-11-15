@@ -642,6 +642,7 @@ def historial():
 def recomprar(pedido_id):
     """
     Agrega todos los productos de un pedido anterior al carrito.
+    Informa al usuario si algún producto no tiene stock disponible.
     """
     if current_user.rol != "cliente":
         flash("Acceso no autorizado.", "danger")
@@ -673,6 +674,7 @@ def recomprar(pedido_id):
         
         carrito = session.get("carrito", [])
         productos_agregados = 0
+        productos_sin_stock = []
         
         for det in detalle_res:
             id_producto = det[0]
@@ -688,6 +690,7 @@ def recomprar(pedido_id):
             # Validar stock disponible
             if stock is not None and stock <= 0:
                 print(f"⚠️ Producto {nombre} sin stock, omitido")
+                productos_sin_stock.append(nombre)
                 continue
             
             cantidad_a_agregar = min(cantidad_pedido, stock) if stock else cantidad_pedido
@@ -716,7 +719,34 @@ def recomprar(pedido_id):
         
         print(f"✅ {productos_agregados} productos del pedido {pedido_id} agregados al carrito")
         
-        flash(f"Se agregaron {productos_agregados} producto(s) al carrito desde tu pedido anterior.", "success")
+        # Mensajes informativos según el resultado
+        if productos_sin_stock and productos_agregados == 0:
+            # Todos los productos están sin stock
+            productos_faltantes = ", ".join(productos_sin_stock)
+            if len(productos_sin_stock) == 1:
+                flash(f"El producto '{productos_faltantes}' no está disponible actualmente.", "warning")
+            else:
+                flash(f"Los siguientes productos no están disponibles: {productos_faltantes}.", "warning")
+        
+        elif productos_agregados > 0:
+            # Se agregó al menos un producto
+            mensaje_base = f"Se agregaron {productos_agregados} producto(s) al carrito."
+            
+            if productos_sin_stock:
+                # Algunos productos se agregaron, otros no
+                productos_faltantes = ", ".join(productos_sin_stock)
+                if len(productos_sin_stock) == 1:
+                    mensaje_final = f"{mensaje_base} El producto '{productos_faltantes}' no está disponible actualmente."
+                else:
+                    mensaje_final = f"{mensaje_base} Los siguientes productos no están disponibles: {productos_faltantes}."
+                flash(mensaje_final, "warning")
+            else:
+                # Todos los productos se agregaron correctamente
+                flash(mensaje_base, "success")
+        
+        else:
+            # Caso raro: no hay productos sin stock pero tampoco se agregó nada
+            flash("No se pudo agregar ningún producto al carrito.", "danger")
         
     except Exception as e:
         print(f"❌ Error al recomprar pedido {pedido_id}: {e}")
@@ -1764,24 +1794,71 @@ def checkout():
             cursor = conn.cursor()
             id_usuario = int(session.get("usuario_id") or current_user.get_id())
             
-            # Verificar stock
+            # ← NUEVO: Validación completa de stock ANTES de procesar
+            productos_sin_stock = []
+            productos_stock_insuficiente = []
+            
             for item in carrito:
                 pid = int(item["id"])
                 q_needed = int(item["cantidad"])
-                row = conn.run("SELECT stock FROM productos WHERE id = :id;", id=pid)
-                stock = row[0][0] if row and row[0] and len(row[0]) > 0 else None
                 
-                if stock is not None and q_needed > stock:
-                    flash(f"No hay suficiente stock de {item['nombre']}. Disponible: {stock}", "warning")
-                    try:
-                        cursor.close()
-                    except:
-                        pass
-                    try:
-                        conn.close()
-                    except:
-                        pass
-                    return redirect(url_for("carrito"))
+                # Obtener stock actual y nombre del producto
+                row = conn.run("SELECT stock, nombre FROM productos WHERE id = :id;", id=pid)
+                
+                if not row or not row[0]:
+                    productos_sin_stock.append(item["nombre"])
+                    continue
+                
+                stock_actual = row[0][0]
+                nombre_producto = row[0][1]
+                
+                # Validar si hay stock suficiente
+                if stock_actual is None:
+                    # Si stock es NULL, permitir la compra (stock ilimitado)
+                    continue
+                elif stock_actual <= 0:
+                    productos_sin_stock.append(nombre_producto)
+                elif q_needed > stock_actual:
+                    productos_stock_insuficiente.append(
+                        f"{nombre_producto} (disponible: {stock_actual}, solicitaste: {q_needed})"
+                    )
+            
+            # Si hay productos sin stock o insuficientes, rechazar la compra
+            if productos_sin_stock or productos_stock_insuficiente:
+                try:
+                    cursor.close()
+                except:
+                    pass
+                try:
+                    conn.close()
+                except:
+                    pass
+                
+                # Construir mensaje de error
+                mensaje_error = "No se pudo procesar tu pedido. "
+                
+                if productos_sin_stock:
+                    if len(productos_sin_stock) == 1:
+                        mensaje_error += f"El producto '{productos_sin_stock[0]}' ya no tiene stock disponible. "
+                    else:
+                        lista_productos = "', '".join(productos_sin_stock)
+                        mensaje_error += f"Los productos '{lista_productos}' ya no tienen stock disponible. "
+                
+                if productos_stock_insuficiente:
+                    if len(productos_stock_insuficiente) == 1:
+                        mensaje_error += f"{productos_stock_insuficiente[0]}. "
+                    else:
+                        for prod_info in productos_stock_insuficiente:
+                            mensaje_error += f"{prod_info}. "
+                
+                mensaje_error += "Por favor actualiza tu carrito."
+                
+                flash(mensaje_error, "danger")
+                print(f"❌ Compra rechazada: {mensaje_error}")
+                return redirect(url_for("carrito"))
+            
+            # ← Si llegamos aquí, todos los productos tienen stock suficiente
+            # Proceder con la compra
             
             # Insertar pedido
             insert_pedido = """
@@ -1822,11 +1899,14 @@ def checkout():
             session["carrito"] = []
             session.modified = True
             
+            print(f"✅ Pedido #{pedido_id} procesado correctamente para usuario {id_usuario}")
             flash("Compra realizada con éxito (simulada).", "success")
             return redirect(url_for("checkout_success"))
             
         except Exception as e:
             print(f"❌ Error en checkout: {e}")
+            import traceback
+            traceback.print_exc()
             try:
                 conn.rollback()
             except:
@@ -1839,11 +1919,10 @@ def checkout():
                 conn.close()
             except:
                 pass
-            flash("Error procesando el pedido.", "danger")
+            flash("Error procesando el pedido. Por favor intenta de nuevo.", "danger")
             return redirect(url_for("carrito"))
     
     return render_template("checkout.html", carrito=carrito, total=total)
-
 
 @app.route("/checkout_success")
 def checkout_success():

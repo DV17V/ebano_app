@@ -6,6 +6,17 @@
     <div class="tienda-container">
         <h1 class="titulo-tienda">Vinos Artesanales Ébano</h1>
 
+        <!-- Bloque de mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
         <div class="productos-grid">
             {% for p in productos %}
             <div class="producto-card">

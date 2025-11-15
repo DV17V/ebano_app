@@ -4,6 +4,17 @@
 {% block content %}
 <section class="producto-detalle">
 
+    <!-- Bloque de mensajes flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages" style="max-width: 1100px; margin: 0 auto 2rem auto;">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <div class="producto-container">
         <div class="producto-imagen">
             {% if producto.imagen_url %}
@@ -47,7 +58,7 @@
     <div class="lista-reseñas">
         {% for r in reseñas %}
             <div class="tarjeta-reseña">
-                <p class="texto-reseña">“{{ r.comentario }}”</p>
+                <p class="texto-reseña">"{{ r.comentario }}"</p>
 
                 <p class="autor-reseña">
                     – {{ r.nombre_completo }}
