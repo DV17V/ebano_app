@@ -123,6 +123,57 @@ CREATE TABLE IF NOT EXISTS detalle_pedido (
     subtotal NUMERIC(10, 2)
 );
 
+
+-- ============================================
+-- AGREGAR CAMPOS GEOGRÁFICOS A USUARIOS
+-- ============================================
+
+-- 1. Agregar columna estado
+ALTER TABLE usuarios 
+ADD COLUMN IF NOT EXISTS estado VARCHAR(50);
+
+-- 2. Agregar columna país
+ALTER TABLE usuarios 
+ADD COLUMN IF NOT EXISTS pais VARCHAR(50) DEFAULT 'Estados Unidos';
+
+-- 3. Verificar que se agregaron correctamente
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'usuarios' 
+AND column_name IN ('estado', 'pais');
+
+-- ============================================
+-- ASIGNAR ESTADOS DE PRUEBA A USUARIOS
+-- ============================================
+
+-- Actualizar usuarios existentes con estados aleatorios
+UPDATE usuarios 
+SET 
+  estado = CASE 
+    WHEN id % 10 = 0 THEN 'California'
+    WHEN id % 10 = 1 THEN 'Texas'
+    WHEN id % 10 = 2 THEN 'New York'
+    WHEN id % 10 = 3 THEN 'Florida'
+    WHEN id % 10 = 4 THEN 'Illinois'
+    WHEN id % 10 = 5 THEN 'Pennsylvania'
+    WHEN id % 10 = 6 THEN 'Ohio'
+    WHEN id % 10 = 7 THEN 'Georgia'
+    WHEN id % 10 = 8 THEN 'Washington'
+    ELSE 'Arizona'
+  END,
+  pais = 'Estados Unidos'
+WHERE rol = 'cliente'
+  AND estado IS NULL;
+
+-- Verificar que se actualizaron
+SELECT 
+  estado, 
+  COUNT(*) as cantidad_usuarios
+FROM usuarios
+WHERE rol = 'cliente'
+GROUP BY estado
+ORDER BY cantidad_usuarios DESC;
+
 -- ---------------------------------------------------------
 -- FIN DEL SCRIPT
 -- ---------------------------------------------------------
