@@ -30,6 +30,12 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "clave_segura_ebano_default")
 app.config['WTF_CSRF_SECRET_KEY'] = os.getenv("WTF_CSRF_SECRET_KEY", app.secret_key)
+
+# 🆕 NUEVAS LÍNEAS PARA PRODUCCIÓN
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('FLASK_ENV') == 'production'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
@@ -1956,4 +1962,11 @@ def internal_server_error(e):
 # MAIN
 # ------------------------------------------------------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Obtener puerto desde variable de entorno (para Render/Heroku/etc)
+    port = int(os.environ.get("PORT", 5000))
+    
+    # En producción, Render usará gunicorn, no este comando
+    # Este bloque solo se usa para desarrollo local
+    debug_mode = os.getenv("FLASK_ENV") != "production"
+    
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
