@@ -33,7 +33,7 @@ def get_connection_render():
     if not render_url:
         print("❌ ERROR: No se encontró RENDER_DATABASE_URL en el archivo .env")
         print("Agrega esta línea a tu .env:")
-        print('RENDER_DATABASE_URL="postgresql://ebano_user:alZ5f9WnQJHzeFyAJQowWONU3W4CwtHI@dpg-d4cb74ili9vc73bte0v0-a.oregon-postgres.render.com/ebano_db"')
+        print('RENDER_DATABASE_URL="postgresql://ebano_user:password@host:port/database"')
         return None
     
     # Parsear URL: postgresql://user:pass@host:port/database
@@ -57,7 +57,7 @@ def get_connection_render():
         
         print(f"🔗 Conectando a Render: {host}/{database}")
         
-        # Crear contexto SSL
+        # Crear contexto SSL (SIEMPRE en Render)
         ssl_context = ssl.create_default_context()
         ssl_context.check_hostname = False
         ssl_context.verify_mode = ssl.CERT_NONE
@@ -142,9 +142,10 @@ def main():
         print("\n❌ No se pudo conectar a la base de datos.")
         print("\n💡 SOLUCIONES POSIBLES:")
         print("   1. Verifica tu conexión a internet")
-        print("   2. Verifica que RENDER_DATABASE_URL esté en .env")
+        print("   2. Verifica que RENDER_DATABASE_URL esté en .env (si usas --render)")
         print("   3. Revisa si tu firewall/antivirus bloquea la conexión")
         print("   4. Intenta desactivar temporalmente VPN si usas una")
+        print("   5. Verifica que PostgreSQL está corriendo (netstat -ano | findstr :5432)")
         sys.exit(1)
 
     try:
