@@ -1422,9 +1422,6 @@ def dashboard_admin():
 # ------------------------------------------------------------
 # DASHBOARD DE ANALÍTICA (METABASE) - SOLO ADMIN
 # ------------------------------------------------------------
-# ------------------------------------------------------------
-# DASHBOARD DE ANALÍTICA (METABASE) - SOLO ADMIN
-# ------------------------------------------------------------
 @app.route("/admin/dashboard_analitica")
 @login_required
 def dashboard_analitica():
@@ -1436,24 +1433,43 @@ def dashboard_analitica():
         flash("No tienes permisos para acceder a esta sección.", "danger")
         return redirect(url_for("index"))
     
-    # Configuración de Metabase
-    METABASE_SITE_URL = "http://localhost:3000"
-    METABASE_SECRET_KEY = "406ff0d4a4bc2e1a609a5b76e753a914c24499de468709190b98b4a26b9db8ad"
+    # Configuración de Metabase desde variables de entorno
+    METABASE_SITE_URL = os.getenv("METABASE_PROD_URL", "http://localhost:3000")
+    METABASE_SECRET_KEY = os.getenv("METABASE_PROD_SECRET_KEY", "406ff0d4a4bc2e1a609a5b76e753a914c24499de468709190b98b4a26b9db8ad")
     
-    # Crear payload con expiración de 10 minutos
-    payload = {
-        "resource": {"dashboard": 2},  # ID de tu dashboard
-        "params": {},
-        "exp": round(time.time()) + (60 * 10)  # 10 minutos de expiración
-    }
+    # Validar que las variables existen
+    if not METABASE_SITE_URL or METABASE_SITE_URL == "http://localhost:3000":
+        flash("Error: Metabase no está configurado. Verifica las variables de entorno.", "danger")
+        return redirect(url_for("dashboard_admin"))
     
-    # Generar token JWT
-    token = jwt.encode(payload, METABASE_SECRET_KEY, algorithm="HS256")
+    if not METABASE_SECRET_KEY:
+        flash("Error: Falta la clave secreta de Metabase. Verifica METABASE_PROD_SECRET_KEY en .env", "danger")
+        return redirect(url_for("dashboard_admin"))
     
-    # Construir URL del iframe
-    metabase_url = f"{METABASE_SITE_URL}/embed/dashboard/{token}#bordered=true&titled=true&theme=night"
-    
-    return render_template("dashboard_analitica.html", metabase_url=metabase_url)
+    try:
+        # Crear payload con expiración de 2 HORAS (7200 segundos)
+        payload = {
+            "resource": {"dashboard": 1},
+            "params": {},
+            "exp": round(time.time()) + (60 * 120)
+        }
+        
+        # Generar token JWT
+        token = jwt.encode(payload, METABASE_SECRET_KEY, algorithm="HS256")
+        
+        # Construir URL del iframe
+        metabase_url = f"{METABASE_SITE_URL}/embed/dashboard/{token}#bordered=true&titled=true&theme=night"
+        
+        print(f"✅ Token JWT generado para Metabase dashboard")
+        
+        return render_template("dashboard_analitica.html", metabase_url=metabase_url)
+        
+    except Exception as e:
+        print(f"❌ Error generando token Metabase: {e}")
+        import traceback
+        traceback.print_exc()
+        flash("Error al generar el dashboard de analítica. Intenta nuevamente.", "danger")
+        return redirect(url_for("dashboard_admin"))
 
 # ------------------------------------------------------------
 # GESTIONAR USUARIOS (ADMIN) - Listado de clientes
