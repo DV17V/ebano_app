@@ -1,28 +1,41 @@
-FROM metabase/metabase:latest
+FROM metabase/metabase:v0.48.0
 
-# Exponer puerto
-EXPOSE 3000
-
-# Variables de entorno para optimizar Metabase en Free tier
+# Variables de entorno críticas
 ENV MB_JETTY_HOST=0.0.0.0
 ENV MB_JETTY_PORT=3000
 
-# Reducir memoria usada
-ENV MB_JAVA_TOOL_OPTIONS=-Xmx256m -Xms128m
+# Configuración de memoria para free tier (512MB disponibles)
+ENV JAVA_OPTS="-Xmx384m -Xms128m -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
 
-# Base de datos H2 persistente
+# Base de datos H2 embebida (NO PostgreSQL)
 ENV MB_DB_TYPE=h2
-ENV MB_DB_FILE=/metabase/metabase.db
+ENV MB_DB_FILE=/metabase-data/metabase.db
 
-# Disable unnecessary features para ahorrar memoria
+# Desactivar features que consumen memoria
 ENV MB_ENABLE_XRAYS=false
 ENV MB_ENABLE_QUERY_CACHING=false
+ENV MB_SITE_URL=https://ebano-metabase.onrender.com
 
-# Aumentar timeouts
-ENV MB_SETUP_TOKEN_MAX_AGE_MS=900000
+# Reducir workers y threads
+ENV MB_JETTY_MAX_THREADS=10
+ENV MB_ASYNC_QUERY_THREAD_POOL_SIZE=5
 
-# Crear directorio para datos
-RUN mkdir -p /metabase
+# Timeout más largo para inicialización
+ENV MB_JETTY_MAX_IDLE_TIME=300000
 
-# Ejecutar Metabase
-CMD ["java", "-Xmx256m", "-Xms128m", "-jar", "metabase.jar"]
+# Crear directorio persistente
+RUN mkdir -p /metabase-data && \
+    chmod 777 /metabase-data
+
+# Volumen para persistencia
+VOLUME /metabase-data
+
+# Puerto expuesto
+EXPOSE 3000
+
+# Healthcheck
+HEALTHCHECK --interval=60s --timeout=10s --start-period=180s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Comando de inicio con opciones de JVM optimizadas
+CMD ["sh", "-c", "java $JAVA_OPTS -jar /app/metabase.jar"]

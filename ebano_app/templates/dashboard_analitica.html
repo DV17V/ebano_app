@@ -7,21 +7,57 @@
     <div class="analitica-header">
         <h1 class="titulo-analitica">📊 Dashboard de Analítica</h1>
         <p class="subtitulo-analitica">Visualización en tiempo real de métricas clave del negocio</p>
+        
         <div class="botones-analitica">
-            <a href="{{ url_for('dashboard_admin') }}" class="boton-secundario">← Volver al Panel Admin</a>
-            <a href="{{ metabase_url }}" target="_blank" class="boton-admin">🔗 Abrir en pantalla completa</a>
+            <a href="{{ url_for('dashboard_admin') }}" class="boton-secundario">
+                ← Volver al Panel Admin
+            </a>
+            <a href="{{ metabase_base_url }}" target="_blank" class="boton-admin" rel="noopener noreferrer">
+                🔗 Abrir Metabase completo
+            </a>
+        </div>
+        
+        <!-- Indicador de carga -->
+        <div id="loading-indicator" class="loading-indicator">
+            <div class="spinner"></div>
+            <p>Cargando dashboard de analítica...</p>
+            <small>Esto puede tomar 10-30 segundos en la primera carga</small>
         </div>
     </div>
 
-    <div class="iframe-container">
+    <!-- Contenedor del iframe -->
+    <div class="iframe-container" id="iframe-container">
         <iframe
+            id="metabase-iframe"
             src="{{ metabase_url }}"
             frameborder="0"
             width="100%"
             height="100%"
             allowtransparency
+            sandbox="allow-scripts allow-same-origin allow-forms"
             title="Dashboard de Analítica Ébano"
+            loading="eager"
         ></iframe>
+    </div>
+    
+    <!-- Mensaje de error (oculto por defecto) -->
+    <div id="error-message" class="error-message" style="display: none;">
+        <h3>⚠️ Error al cargar el dashboard</h3>
+        <p>El dashboard de Metabase no pudo cargarse correctamente.</p>
+        <details>
+            <summary>Posibles causas y soluciones</summary>
+            <ul>
+                <li><strong>Primera carga:</strong> Metabase puede tardar 30-60 segundos en iniciar por primera vez</li>
+                <li><strong>Free tier de Render:</strong> El servicio puede estar "dormido" y necesita despertar</li>
+                <li><strong>Conexión lenta:</strong> Intenta recargar la página en unos segundos</li>
+            </ul>
+        </details>
+        <div class="error-actions">
+            <button onclick="location.reload()" class="boton-admin">🔄 Reintentar</button>
+            <a href="{{ metabase_base_url }}" target="_blank" class="boton-secundario" rel="noopener noreferrer">
+                Abrir Metabase directamente
+            </a>
+        </div>
     </div>
 </section>
 
@@ -31,6 +67,7 @@
     min-height: 100vh;
     background: #f5f2ef;
     padding: 0;
+    position: relative;
 }
 
 .analitica-header {
@@ -58,17 +95,106 @@
     gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
+    margin-bottom: 1rem;
 }
 
+/* Indicador de carga */
+.loading-indicator {
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    backdrop-filter: blur(10px);
+}
+
+.spinner {
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-indicator p {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+}
+
+.loading-indicator small {
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+/* Contenedor del iframe */
 .iframe-container {
     width: 100%;
-    height: calc(100vh - 200px);
+    height: calc(100vh - 280px);
     background: white;
     border: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.iframe-container.loaded {
+    opacity: 1;
 }
 
 .iframe-container iframe {
     display: block;
+}
+
+/* Mensaje de error */
+.error-message {
+    max-width: 600px;
+    margin: 3rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.error-message h3 {
+    color: #d32f2f;
+    margin-bottom: 1rem;
+}
+
+.error-message details {
+    text-align: left;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.error-message summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #7c1823;
+}
+
+.error-message ul {
+    margin-top: 1rem;
+    padding-left: 1.5rem;
+}
+
+.error-message li {
+    margin: 0.5rem 0;
+}
+
+.error-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
 }
 
 /* Responsive */
@@ -82,8 +208,90 @@
     }
     
     .iframe-container {
-        height: calc(100vh - 220px);
+        height: calc(100vh - 320px);
+    }
+    
+    .botones-analitica {
+        flex-direction: column;
+    }
+    
+    .botones-analitica a,
+    .botones-analitica button {
+        width: 100%;
     }
 }
 </style>
+
+<script>
+// Script para manejar la carga del iframe y timeouts
+(function() {
+    const iframe = document.getElementById('metabase-iframe');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const iframeContainer = document.getElementById('iframe-container');
+    const errorMessage = document.getElementById('error-message');
+    
+    let loadTimeout;
+    const MAX_LOAD_TIME = 60000; // 60 segundos timeout
+    
+    // Función para mostrar error
+    function showError() {
+        console.error('❌ Timeout: El iframe de Metabase no cargó en 60 segundos');
+        loadingIndicator.style.display = 'none';
+        iframeContainer.style.display = 'none';
+        errorMessage.style.display = 'block';
+    }
+    
+    // Función para confirmar carga exitosa
+    function onLoadSuccess() {
+        console.log('✅ Dashboard de Metabase cargado correctamente');
+        clearTimeout(loadTimeout);
+        loadingIndicator.style.display = 'none';
+        iframeContainer.classList.add('loaded');
+    }
+    
+    // Timeout de seguridad
+    loadTimeout = setTimeout(showError, MAX_LOAD_TIME);
+    
+    // Event listener para carga del iframe
+    iframe.addEventListener('load', function() {
+        // Esperamos 2 segundos adicionales para que Metabase renderice
+        setTimeout(onLoadSuccess, 2000);
+    });
+    
+    // Event listener para error explícito
+    iframe.addEventListener('error', function(e) {
+        console.error('❌ Error al cargar iframe:', e);
+        showError();
+    });
+    
+    // Verificación periódica (cada 5 segundos durante 60 segundos)
+    let checkCount = 0;
+    const checkInterval = setInterval(function() {
+        checkCount++;
+        console.log(`⏳ Esperando carga del dashboard... (${checkCount * 5}s / 60s)`);
+        
+        if (checkCount >= 12) { // 12 * 5 = 60 segundos
+            clearInterval(checkInterval);
+        }
+        
+        // Intentar detectar si el iframe está realmente cargado
+        try {
+            if (iframe.contentWindow && iframe.contentWindow.document) {
+                const iframeDoc = iframe.contentWindow.document;
+                if (iframeDoc.readyState === 'complete' || 
+                    iframeDoc.readyState === 'interactive') {
+                    clearInterval(checkInterval);
+                    onLoadSuccess();
+                }
+            }
+        } catch (e) {
+            // Cross-origin error esperado, el iframe está cargando
+            console.log('ℹ️  Iframe cargando (cross-origin)...');
+        }
+    }, 5000);
+    
+    console.log('🚀 Iniciando carga del dashboard de Metabase...');
+    console.log('📍 URL del iframe:', iframe.src);
+})();
+</script>
 {% endblock %}

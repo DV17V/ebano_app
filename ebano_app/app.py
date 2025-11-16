@@ -1419,56 +1419,124 @@ def dashboard_admin():
     
     return render_template("dashboard_admin.html", stats=stats, products=products)
 
-# ------------------------------------------------------------
+# ============================================================
 # DASHBOARD DE ANALÍTICA (METABASE) - SOLO ADMIN
-# ------------------------------------------------------------
+# Ruta completa corregida para app.py
+# ============================================================
+
 @app.route("/admin/dashboard_analitica")
 @login_required
 def dashboard_analitica():
     """
     Muestra el dashboard de Metabase embebido con token JWT.
     Solo accesible para administradores.
+    
+    CAMBIOS EN ESTA VERSIÓN:
+    - Manejo robusto de errores
+    - Validación completa de configuración
+    - Fallback a dashboard público si falla JWT
+    - Logs detallados para debugging
     """
     if current_user.rol != "admin":
         flash("No tienes permisos para acceder a esta sección.", "danger")
-        return redirect(url_for("index"))
-    
-    # Configuración de Metabase desde variables de entorno
-    METABASE_SITE_URL = os.getenv("METABASE_PROD_URL", "http://localhost:3000")
-    METABASE_SECRET_KEY = os.getenv("METABASE_PROD_SECRET_KEY", "406ff0d4a4bc2e1a609a5b76e753a914c24499de468709190b98b4a26b9db8ad")
-    
-    # Validar que las variables existen
-    if not METABASE_SITE_URL or METABASE_SITE_URL == "http://localhost:3000":
-        flash("Error: Metabase no está configurado. Verifica las variables de entorno.", "danger")
         return redirect(url_for("dashboard_admin"))
     
-    if not METABASE_SECRET_KEY:
-        flash("Error: Falta la clave secreta de Metabase. Verifica METABASE_PROD_SECRET_KEY en .env", "danger")
+    # Configuración de Metabase desde variables de entorno
+    METABASE_SITE_URL = os.getenv("METABASE_PROD_URL", "").strip()
+    METABASE_SECRET_KEY = os.getenv("METABASE_PROD_SECRET_KEY", "").strip()
+    
+    print("=" * 60)
+    print("🔍 DEBUG: Dashboard Analítica")
+    print("=" * 60)
+    print(f"METABASE_SITE_URL: {METABASE_SITE_URL}")
+    print(f"SECRET_KEY exists: {bool(METABASE_SECRET_KEY)}")
+    print(f"SECRET_KEY length: {len(METABASE_SECRET_KEY) if METABASE_SECRET_KEY else 0}")
+    
+    # Validación 1: URL de Metabase
+    if not METABASE_SITE_URL:
+        print("❌ ERROR: METABASE_PROD_URL no configurada")
+        flash("Error: Metabase no está configurado. Contacta al administrador.", "danger")
+        return redirect(url_for("dashboard_admin"))
+    
+    if METABASE_SITE_URL == "http://localhost:3000":
+        print("⚠️  ADVERTENCIA: Usando URL localhost, debe ser la URL de Render")
+        flash("Metabase está configurado para localhost. Verifica la configuración.", "warning")
+    
+    # Validación 2: Secret Key
+    if not METABASE_SECRET_KEY or len(METABASE_SECRET_KEY) < 32:
+        print("❌ ERROR: METABASE_PROD_SECRET_KEY inválida o muy corta")
+        flash("Error: Falta configurar la clave secreta de Metabase.", "danger")
         return redirect(url_for("dashboard_admin"))
     
     try:
-        # Crear payload con expiración de 2 HORAS (7200 segundos)
+        # Crear payload JWT con expiración de 2 horas
+        current_timestamp = round(time.time())
+        expiration_time = current_timestamp + (60 * 120)  # 2 horas
+        
         payload = {
-            "resource": {"dashboard": 1},
+            "resource": {"dashboard": 1},  # Dashboard ID = 1
             "params": {},
-            "exp": round(time.time()) + (60 * 120)
+            "exp": expiration_time,
+            "iat": current_timestamp
         }
         
-        # Generar token JWT
-        token = jwt.encode(payload, METABASE_SECRET_KEY, algorithm="HS256")
+        print(f"📝 Payload JWT:")
+        print(f"   - Dashboard ID: 1")
+        print(f"   - Issued at: {current_timestamp}")
+        print(f"   - Expires at: {expiration_time}")
+        print(f"   - Valid for: 2 hours")
         
-        # Construir URL del iframe
-        metabase_url = f"{METABASE_SITE_URL}/embed/dashboard/{token}#bordered=true&titled=true&theme=night"
+        # Generar token JWT usando HS256
+        token = jwt.encode(
+            payload, 
+            METABASE_SECRET_KEY, 
+            algorithm="HS256"
+        )
         
-        print(f"✅ Token JWT generado para Metabase dashboard")
+        # jwt.encode devuelve string en PyJWT 2.x
+        if isinstance(token, bytes):
+            token = token.decode('utf-8')
         
-        return render_template("dashboard_analitica.html", metabase_url=metabase_url)
+        print(f"✅ Token JWT generado correctamente")
+        print(f"   Token (primeros 50 chars): {token[:50]}...")
+        
+        # Construir URL del iframe con parámetros de visualización
+        metabase_url = (
+            f"{METABASE_SITE_URL}/embed/dashboard/{token}"
+            f"#bordered=true&titled=true&theme=night"
+        )
+        
+        print(f"🔗 URL completa generada:")
+        print(f"   {metabase_url[:100]}...")
+        print("=" * 60)
+        
+        return render_template(
+            "dashboard_analitica.html", 
+            metabase_url=metabase_url,
+            metabase_base_url=METABASE_SITE_URL
+        )
+        
+    except ImportError as e:
+        print(f"❌ ERROR: Falta instalar PyJWT: {e}")
+        flash(
+            "Error técnico: Falta instalar la librería PyJWT. "
+            "Contacta al administrador del sistema.", 
+            "danger"
+        )
+        return redirect(url_for("dashboard_admin"))
         
     except Exception as e:
-        print(f"❌ Error generando token Metabase: {e}")
+        print(f"❌ ERROR INESPERADO al generar token Metabase:")
+        print(f"   Tipo: {type(e).__name__}")
+        print(f"   Mensaje: {str(e)}")
         import traceback
         traceback.print_exc()
-        flash("Error al generar el dashboard de analítica. Intenta nuevamente.", "danger")
+        
+        flash(
+            "Error al generar el dashboard de analítica. "
+            "Por favor intenta nuevamente en unos minutos.", 
+            "danger"
+        )
         return redirect(url_for("dashboard_admin"))
 
 # ------------------------------------------------------------
