@@ -6,10 +6,10 @@
 
 -- Si existe una versión anterior, se eliminan las tablas en orden correcto
 DROP TABLE IF EXISTS detalle_pedidos CASCADE;
+DROP TABLE IF EXISTS resenas CASCADE;
 DROP TABLE IF EXISTS pedidos CASCADE;
 DROP TABLE IF EXISTS productos CASCADE;
 DROP TABLE IF EXISTS usuarios CASCADE;
-DROP TABLE IF EXISTS reseñas CASCADE;
 
 -- ---------------------------------------------------------
 -- TABLA: usuarios
@@ -20,6 +20,11 @@ CREATE TABLE usuarios (
     correo VARCHAR(100) UNIQUE NOT NULL,
     contraseña VARCHAR(255) NOT NULL,
     rol VARCHAR(20) NOT NULL DEFAULT 'cliente',
+    nombre_completo VARCHAR(150),
+    telefono VARCHAR(50),
+    direccion TEXT,
+    estado VARCHAR(50),
+    pais VARCHAR(50) DEFAULT 'Colombia',
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -43,7 +48,7 @@ CREATE TABLE pedidos (
     id SERIAL PRIMARY KEY,
     id_usuario INT REFERENCES usuarios(id) ON DELETE CASCADE,
     fecha_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    estado VARCHAR(20) DEFAULT 'pendiente',
+    estado VARCHAR(20) DEFAULT 'Pendiente',
     total NUMERIC(10,2) DEFAULT 0
 );
 
@@ -59,9 +64,9 @@ CREATE TABLE detalle_pedidos (
 );
 
 -- ---------------------------------------------------------
--- TABLA: reseñas
+-- TABLA: resenas (SIN Ñ para compatibilidad)
 -- ---------------------------------------------------------
-CREATE TABLE reseñas (
+CREATE TABLE resenas (
     id SERIAL PRIMARY KEY,
     id_usuario INT REFERENCES usuarios(id) ON DELETE CASCADE,
     id_producto INT REFERENCES productos(id) ON DELETE CASCADE,
@@ -74,105 +79,11 @@ CREATE TABLE reseñas (
 -- INSERCIÓN DE DATOS DE PRUEBA
 -- ---------------------------------------------------------
 
-INSERT INTO usuarios (nombre_usuario, correo, contraseña, rol)
-VALUES
-('admin', 'admin@ebano.com', 'admin1234', 'admin'),
-('cliente1', 'cliente1@correo.com', 'pass1', 'cliente'),
-('cliente2', 'cliente2@correo.com', 'pass2', 'cliente');
-
 INSERT INTO productos (nombre, descripcion, precio, stock, imagen_url)
 VALUES
 ('Ébano Clásico 250ml', 'Vino artesanal sin alcohol con notas de frutos rojos.', 25000, 50, 'img/ebano_clasico_250.jpg'),
 ('Ébano Dorado 500ml', 'Variante dorada con matices cítricos, edición limitada.', 42000, 30, 'img/ebanodorado500.jpg'),
 ('Ébano Reserva 750ml', 'Vino sin alcohol con fermentación natural de uva borgoña.', 60000, 20, 'img/ebano_reserva_750.jpg');
-
--- Simulación de pedidos
-INSERT INTO pedidos (id_usuario, estado, total)
-VALUES (2, 'entregado', 85000), (3, 'pendiente', 42000);
-
-INSERT INTO detalle_pedidos (id_pedido, id_producto, cantidad, subtotal)
-VALUES 
-(1, 1, 2, 50000),
-(1, 3, 1, 60000),
-(2, 2, 1, 42000);
-
-INSERT INTO reseñas (id_usuario, id_producto, comentario, calificacion)
-VALUES 
-(2, 1, 'Excelente sabor, ideal para cenas.', 5),
-(3, 2, 'Muy refrescante, aunque un poco dulce.', 4);
-
--- ---------------------------------------------------------
--- SCRIPT DE CARRITO DE COMPRAS
--- ---------------------------------------------------------
-
--- Tabla de pedidos
-CREATE TABLE IF NOT EXISTS pedidos (
-    id SERIAL PRIMARY KEY,
-    id_usuario INTEGER NOT NULL REFERENCES usuarios(id),
-    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    total NUMERIC(10, 2),
-    estado VARCHAR(20) DEFAULT 'pendiente'
-);
-
--- Detalle de cada pedido
-CREATE TABLE IF NOT EXISTS detalle_pedido (
-    id SERIAL PRIMARY KEY,
-    id_pedido INTEGER REFERENCES pedidos(id) ON DELETE CASCADE,
-    id_producto INTEGER REFERENCES productos(id),
-    cantidad INTEGER DEFAULT 1,
-    subtotal NUMERIC(10, 2)
-);
-
-
--- ============================================
--- AGREGAR CAMPOS GEOGRÁFICOS A USUARIOS
--- ============================================
-
--- 1. Agregar columna estado
-ALTER TABLE usuarios 
-ADD COLUMN IF NOT EXISTS estado VARCHAR(50);
-
--- 2. Agregar columna país
-ALTER TABLE usuarios 
-ADD COLUMN IF NOT EXISTS pais VARCHAR(50) DEFAULT 'Estados Unidos';
-
--- 3. Verificar que se agregaron correctamente
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'usuarios' 
-AND column_name IN ('estado', 'pais');
-
--- ============================================
--- ASIGNAR ESTADOS DE PRUEBA A USUARIOS
--- ============================================
-
--- Actualizar usuarios existentes con estados aleatorios
-UPDATE usuarios 
-SET 
-  estado = CASE 
-    WHEN id % 10 = 0 THEN 'California'
-    WHEN id % 10 = 1 THEN 'Texas'
-    WHEN id % 10 = 2 THEN 'New York'
-    WHEN id % 10 = 3 THEN 'Florida'
-    WHEN id % 10 = 4 THEN 'Illinois'
-    WHEN id % 10 = 5 THEN 'Pennsylvania'
-    WHEN id % 10 = 6 THEN 'Ohio'
-    WHEN id % 10 = 7 THEN 'Georgia'
-    WHEN id % 10 = 8 THEN 'Washington'
-    ELSE 'Arizona'
-  END,
-  pais = 'Estados Unidos'
-WHERE rol = 'cliente'
-  AND estado IS NULL;
-
--- Verificar que se actualizaron
-SELECT 
-  estado, 
-  COUNT(*) as cantidad_usuarios
-FROM usuarios
-WHERE rol = 'cliente'
-GROUP BY estado
-ORDER BY cantidad_usuarios DESC;
 
 -- ---------------------------------------------------------
 -- FIN DEL SCRIPT
