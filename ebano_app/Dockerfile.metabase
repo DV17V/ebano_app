@@ -3,9 +3,26 @@ FROM metabase/metabase:latest
 # Exponer puerto
 EXPOSE 3000
 
-# Variables por defecto
+# Variables de entorno para optimizar Metabase en Free tier
 ENV MB_JETTY_HOST=0.0.0.0
 ENV MB_JETTY_PORT=3000
 
+# Reducir memoria usada
+ENV MB_JAVA_TOOL_OPTIONS=-Xmx256m -Xms128m
+
+# Base de datos H2 persistente
+ENV MB_DB_TYPE=h2
+ENV MB_DB_FILE=/metabase/metabase.db
+
+# Disable unnecessary features para ahorrar memoria
+ENV MB_ENABLE_XRAYS=false
+ENV MB_ENABLE_QUERY_CACHING=false
+
+# Aumentar timeouts
+ENV MB_SETUP_TOKEN_MAX_AGE_MS=900000
+
+# Crear directorio para datos
+RUN mkdir -p /metabase
+
 # Ejecutar Metabase
-CMD ["java", "-jar", "metabase.jar"]
+CMD ["java", "-Xmx256m", "-Xms128m", "-jar", "metabase.jar"]

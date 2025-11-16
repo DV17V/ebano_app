@@ -50,49 +50,26 @@ services:
     name: ebano-metabase
     dockerfilePath: ./Dockerfile.metabase
     plan: free
+    healthCheckPath: /
     envVars:
       - key: MB_DB_TYPE
-        value: postgres
-      - key: MB_DB_HOST
-        fromService:
-          type: postgres
-          name: metabase-db
-          property: host
-      - key: MB_DB_PORT
-        fromService:
-          type: postgres
-          name: metabase-db
-          property: port
-      - key: MB_DB_USER
-        fromService:
-          type: postgres
-          name: metabase-db
-          property: user
-      - key: MB_DB_PASS
-        fromService:
-          type: postgres
-          name: metabase-db
-          property: password
-      - key: MB_DB_DBNAME
-        fromService:
-          type: postgres
-          name: metabase-db
-          property: database
+        value: h2
+      - key: MB_DB_FILE
+        value: /metabase/metabase.db
       - key: MB_JETTY_HOST
         value: 0.0.0.0
       - key: MB_JETTY_PORT
         value: 3000
+      - key: MB_JAVA_TOOL_OPTIONS
+        value: -Xmx256m -Xms128m
+      - key: MB_ENABLE_XRAYS
+        value: "false"
+      - key: MB_ENABLE_QUERY_CACHING
+        value: "false"
 
   - type: postgres
     name: ebano-db
     plan: free
     initialDatabase: ebano_db
     user: ebano_user
-    postgresMajorVersion: 15
-
-  - type: postgres
-    name: metabase-db
-    plan: free
-    initialDatabase: metabase_db
-    user: metabase_user
     postgresMajorVersion: 15
