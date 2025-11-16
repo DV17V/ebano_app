@@ -1361,7 +1361,7 @@ def producto(id):
         flash("Producto no encontrado.", "warning")
         return redirect(url_for("tienda"))
     
-    mostrar_precios = current_user.is_authenticated and current_user.rol == "cliente"
+    mostrar_precios = current_user.is_authenticated and current_user.rol == "cliente" or current_user.is_authenticated and current_user.rol == "admin"
     return render_template("producto.html", producto=producto, reseñas=reseñas, mostrar_precios=mostrar_precios)
 
 
