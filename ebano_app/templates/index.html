@@ -3,29 +3,91 @@
 
 {% block content %}
 
-<!-- Bloque de mensajes flash -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <div class="flash-messages" style="max-width: 1200px; margin: 2rem auto; padding: 0 2rem;">
+    <div class="container mt-3">
       {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
       {% endfor %}
     </div>
   {% endif %}
 {% endwith %}
 
-<section class="hero">
-    <div class="hero-texto">
-        <h2>Vino artesanal sin alcohol, orgullo de Nariño</h2>
-        <p>Descubre el sabor, la historia y la elegancia del vino artesanal colombiano, creado con pasión y sin alcohol.</p>
-        <div class="botones-hero">
-            <a class="boton" href="{{ url_for('tienda') }}">Explorar la tienda</a>
-            <a class="boton-secundario" href="{{ url_for('login') }}">Iniciar sesión</a>
+<div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3000">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+    </div>
+    
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img src="{{ url_for('static', filename='img/hero/slide1.jpg') }}" class="d-block w-100" alt="Ébano Slide 1">
+            <div class="carousel-overlay"></div>
+            <div class="carousel-caption">
+                <div class="hero-content">
+                    <span class="hero-badge">Orgullo de Nariño</span>
+                    <h1 class="hero-title">Vino Artesanal Sin Alcohol</h1>
+                    <p class="hero-subtitle">Descubre el sabor auténtico de las tierras altas colombianas</p>
+                    <div class="hero-buttons">
+                        <a href="{{ url_for('tienda') }}" class="btn btn-hero-primary">
+                            <i class="bi bi-shop"></i> Explorar Tienda
+                        </a>
+                        <a href="#intro" class="btn btn-hero-outline">
+                            <i class="bi bi-arrow-down"></i> Conocer Más
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="carousel-item">
+            <img src="{{ url_for('static', filename='img/hero/slide2.jpg') }}" class="d-block w-100" alt="Ébano Slide 2">
+            <div class="carousel-overlay"></div>
+            <div class="carousel-caption">
+                <div class="hero-content">
+                    <span class="hero-badge">100% Natural</span>
+                    <h1 class="hero-title">Elaborado con Moras Seleccionadas</h1>
+                    <p class="hero-subtitle">Cada botella es una obra de arte creada con pasión</p>
+                    <div class="hero-buttons">
+                        <a href="{{ url_for('tienda') }}" class="btn btn-hero-primary">
+                            <i class="bi bi-cart3"></i> Comprar Ahora
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="carousel-item">
+            <img src="{{ url_for('static', filename='img/hero/slide3.jpg') }}" class="d-block w-100" alt="Ébano Slide 3">
+            <div class="carousel-overlay"></div>
+            <div class="carousel-caption">
+                <div class="hero-content">
+                    <span class="hero-badge">Tradición y Calidad</span>
+                    <h1 class="hero-title">Un Legado en Cada Copa</h1>
+                    <p class="hero-subtitle">Ébano representa la esencia de Nariño</p>
+                    <div class="hero-buttons">
+                        <a href="{{ url_for('tienda') }}" class="btn btn-hero-primary">
+                            <i class="bi bi-stars"></i> Ver Productos
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</section>
+    
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+</div>
 
-<section class="intro">
+<section id="intro" class="intro">
     <h2 class="titulo-seccion">Nuestra esencia</h2>
     <p class="texto-intro">
         Ébano nace en las tierras altas de Nariño, Colombia, con el propósito de ofrecer una experiencia única: vino sin alcohol, 
@@ -33,4 +95,5 @@
         Nuestra visión: llevar el sabor colombiano a cada rincón del mundo, sin perder la autenticidad.
     </p>
 </section>
+
 {% endblock %}
