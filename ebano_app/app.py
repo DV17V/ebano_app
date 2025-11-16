@@ -403,11 +403,9 @@ def login():
     
     if form.validate_on_submit():
         correo = form.correo.data.lower().strip()
-        print(f"\n🔍 DEBUG LOGIN: Intentando login con correo: {correo}")
         
         conn = get_connection()
         if not conn:
-            print("❌ DEBUG: No se pudo conectar a BD")
             flash("Error de conexión con la base de datos.", "danger")
             return redirect(url_for("login"))
         
@@ -417,23 +415,17 @@ def login():
                 FROM usuarios
                 WHERE correo = :correo;
             """
-            print(f"📝 DEBUG: Ejecutando query para correo: {correo}")
             result = conn.run(query, correo=correo)
-            print(f"📊 DEBUG: Resultado de query: {result}")
             
             conn.close()
             
             if not result:
-                print(f"❌ DEBUG: Usuario NO encontrado: {correo}")
                 flash("Correo o contraseña incorrectos.", "danger")
                 return redirect(url_for("login"))
             
-            print(f"✅ DEBUG: Usuario encontrado!")
             user_data = result[0]
-            print(f"📋 DEBUG: Datos del usuario: ID={user_data[0]}, rol={user_data[4]}")
             
             stored_hash_raw = user_data[3]
-            print(f"🔐 DEBUG: Hash almacenado (primeros 20 chars): {str(stored_hash_raw)[:20]}...")
             
             if isinstance(stored_hash_raw, str):
                 stored_hash = stored_hash_raw.encode("utf-8")
@@ -441,12 +433,10 @@ def login():
                 stored_hash = stored_hash_raw
             
             pwd_input = form.contraseña.data
-            print(f"🔑 DEBUG: Contraseña ingresada (primeros 5 chars): {pwd_input[:5]}...")
             
             # Verificar contraseña
             is_password_correct = bcrypt.checkpw(pwd_input.encode("utf-8"), stored_hash)
-            print(f"🔓 DEBUG: ¿Contraseña correcta? {is_password_correct}")
-            
+
             if is_password_correct:
                 user = Usuario(user_data[0], user_data[1], user_data[2], user_data[4])
                 try:
@@ -454,40 +444,30 @@ def login():
                 except Exception:
                     user.nombre_completo = user_data[1]
                 
-                print(f"👤 DEBUG: Creando objeto Usuario: {user.nombre_usuario}")
-                
                 login_user(user)
-                print(f"✅ DEBUG: login_user() ejecutado")
                 
                 session["usuario_id"] = user.id
                 session["rol"] = user.rol
                 session["usuario_nombre"] = getattr(user, "nombre_completo", user.nombre_usuario)
                 session.modified = True
-                print(f"📝 DEBUG: Session actualizada con ID={user.id}, rol={user.rol}")
                 
                 flash("Inicio de sesión exitoso.", "success")
-                print(f"✅ Login correcto: {user.correo} (rol={user.rol})")
                 
                 if user.rol.lower() == "admin":
-                    print(f"🎯 DEBUG: Redirigiendo a dashboard_admin")
                     return redirect(url_for("dashboard_admin"))
                 else:
-                    print(f"🎯 DEBUG: Redirigiendo a dashboard_usuario")
                     return redirect(url_for("dashboard_usuario"))
             else:
-                print(f"❌ DEBUG: Contraseña incorrecta para {correo}")
                 flash("Correo o contraseña incorrectos.", "danger")
                 return redirect(url_for("login"))
                 
         except Exception as e:
-            print(f"❌ DEBUG EXCEPTION: {e}")
             import traceback
             traceback.print_exc()
             try:
                 conn.close()
             except:
                 pass
-            print(f"❌ Error durante el proceso de login: {e}")
             flash("Error interno en el login.", "danger")
             return redirect(url_for("login"))
     

@@ -1,0 +1,98 @@
+services:
+  - type: web
+    name: ebano-app
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.4
+      - key: FLASK_ENV
+        value: production
+      - key: DB_NAME
+        fromService:
+          type: postgres
+          name: ebano-db
+          property: database
+      - key: DB_USER
+        fromService:
+          type: postgres
+          name: ebano-db
+          property: user
+      - key: DB_PASS
+        fromService:
+          type: postgres
+          name: ebano-db
+          property: password
+      - key: DB_HOST
+        fromService:
+          type: postgres
+          name: ebano-db
+          property: host
+      - key: DB_PORT
+        fromService:
+          type: postgres
+          name: ebano-db
+          property: port
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WTF_CSRF_SECRET_KEY
+        generateValue: true
+      - key: CURRENCY_API_KEY
+        value: cur_live_o07HXDSny3U3VemlJKvBlkaph2yZi5XWqdydrpHa
+      - key: METABASE_PROD_URL
+        value: https://ebano-metabase.onrender.com
+      - key: METABASE_PROD_SECRET_KEY
+        value: 406ff0d4a4bc2e1a609a5b76e753a914c24499de468709190b98b4a26b9db8ad
+
+  - type: web
+    name: ebano-metabase
+    dockerfilePath: ./Dockerfile.metabase
+    plan: free
+    envVars:
+      - key: MB_DB_TYPE
+        value: postgres
+      - key: MB_DB_HOST
+        fromService:
+          type: postgres
+          name: metabase-db
+          property: host
+      - key: MB_DB_PORT
+        fromService:
+          type: postgres
+          name: metabase-db
+          property: port
+      - key: MB_DB_USER
+        fromService:
+          type: postgres
+          name: metabase-db
+          property: user
+      - key: MB_DB_PASS
+        fromService:
+          type: postgres
+          name: metabase-db
+          property: password
+      - key: MB_DB_DBNAME
+        fromService:
+          type: postgres
+          name: metabase-db
+          property: database
+      - key: MB_JETTY_HOST
+        value: 0.0.0.0
+      - key: MB_JETTY_PORT
+        value: 3000
+
+  - type: postgres
+    name: ebano-db
+    plan: free
+    initialDatabase: ebano_db
+    user: ebano_user
+    postgresMajorVersion: 15
+
+  - type: postgres
+    name: metabase-db
+    plan: free
+    initialDatabase: metabase_db
+    user: metabase_user
+    postgresMajorVersion: 15
