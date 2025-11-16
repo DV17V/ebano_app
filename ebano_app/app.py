@@ -5,6 +5,7 @@
 from datetime import datetime
 import time
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+import jwt
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, make_response
 from flask_login import (
     LoginManager, login_user, logout_user,
