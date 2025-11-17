@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Demasiados intentos - Ébano{% endblock %}
+
+{% block content %}
+<section class="error-404">
+    <h2>⏱️ Demasiados intentos</h2>
+    <p>Has excedido el límite de intentos permitidos.</p>
+    <p>Por favor, espera unos minutos e intenta nuevamente.</p>
+    <a class="boton" href="{{ url_for('index') }}">Volver al inicio</a>
+</section>
+{% endblock %}

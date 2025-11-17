@@ -1,6 +1,7 @@
 import pg8000
 import os
 import ssl
+from contextlib import contextmanager
 from dotenv import load_dotenv
 
 # ---------------------------------------------------------
@@ -81,3 +82,32 @@ if __name__ == "__main__":
             print("❌ Error en la prueba:", e)
     else:
         print("❌ No se pudo establecer conexión")
+
+# ---------------------------------------------------------
+@contextmanager
+def db_connection():
+    """
+    Context manager para manejar conexiones de BD automáticamente.
+    
+    Uso:
+        with db_connection() as conn:
+            result = conn.run("SELECT * FROM usuarios;")
+    """
+    conn = get_connection()
+    if not conn:
+        raise Exception("No se pudo establecer conexión con la BD")
+    
+    try:
+        yield conn
+        conn.commit()
+    except Exception as e:
+        try:
+            conn.rollback()
+        except:
+            pass
+        raise e
+    finally:
+        try:
+            conn.close()
+        except:
+            pass
