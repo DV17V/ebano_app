@@ -2,54 +2,80 @@
 {% block title %}Tienda | Ébano{% endblock %}
 
 {% block content %}
+
+<div class="container mt-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+</div>
+
 <section class="tienda">
-    <div class="tienda-container">
-        <h1 class="titulo-tienda">Vinos Artesanales Ébano</h1>
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="titulo-tienda">Vinos Artesanales Ébano</h1>
+            <p class="subtitulo-tienda">Tradición y calidad en cada botella</p>
+        </div>
 
-        <!-- Bloque de mensajes flash -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="flash-messages">
-              {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-
-        <div class="productos-grid">
+        <div class="row g-4">
             {% for p in productos %}
-            <div class="producto-card">
+            <div class="col-lg-4 col-md-6">
+                <div class="producto-card">
+                    <div class="producto-imagen">
+                        {% if p.imagen_url %}
+                            <img src="{{ url_for('static', filename=p.imagen_url) }}" alt="{{ p.nombre }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='img/default.png') }}" alt="{{ p.nombre }}">
+                        {% endif %}
+                        <div class="producto-overlay">
+                            <a href="{{ url_for('producto', id=p.id) }}" class="btn btn-ver-mas">
+                                <i class="bi bi-eye"></i> Ver más
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="producto-info">
+                        <h3 class="producto-nombre">{{ p.nombre }}</h3>
+                        <p class="producto-descripcion">{{ p.descripcion }}</p>
 
-                {% if p.imagen_url %}
-                    <img src="{{ url_for('static', filename=p.imagen_url) }}" alt="{{ p.nombre }}">
-                {% else %}
-                    <img src="{{ url_for('static', filename='img/default.png') }}" alt="{{ p.nombre }}">
-                {% endif %}
+                        {% if mostrar_precios %}
+                            <div class="producto-precio-box">
+                                <span class="producto-precio">{{ p.precio|usd }}</span>
+                                <span class="producto-stock">
+                                    <i class="bi bi-box-seam"></i> Stock: {{ p.stock }}
+                                </span>
+                            </div>
 
-                <h2>{{ p.nombre }}</h2>
-                <p class="descripcion">{{ p.descripcion }}</p>
-
-                {% if mostrar_precios %}
-                    <p class="precio">
-                        Precio: <span>{{ p.precio|usd }}</span>
-                    </p>
-
-                    <p class="stock">Stock disponible: {{ p.stock }}</p>
-
-                    <a class="boton" href="{{ url_for('producto', id=p.id) }}">Ver más</a>
-
-                    <form method="POST" action="{{ url_for('agregar_carrito', producto_id=p.id) }}" class="form-cantidad">
-                        <label>Cantidad:</label>
-                        <input type="number" name="cantidad" min="1" max="{{ p.stock }}" value="1" required>
-                        <button type="submit" class="boton comprar">Agregar al carrito</button>
-                    </form>
-                {% else %}
-                    <p class="aviso">Inicia sesión para ver precios y comprar.</p>
-                {% endif %}
+                            <form method="POST" action="{{ url_for('agregar_carrito', producto_id=p.id) }}" class="producto-form">
+                                <div class="cantidad-group">
+                                    <label>Cantidad:</label>
+                                    <input type="number" name="cantidad" min="1" max="{{ p.stock }}" value="1" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-agregar-carrito w-100">
+                                    <i class="bi bi-cart-plus"></i> Agregar al carrito
+                                </button>
+                            </form>
+                        {% else %}
+                            <div class="aviso-login">
+                                <i class="bi bi-lock"></i>
+                                <p>Inicia sesión para ver precios y comprar</p>
+                                <a href="{{ url_for('login') }}" class="btn btn-login">
+                                    <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
             {% endfor %}
         </div>
     </div>
 </section>
+
 {% endblock %}
