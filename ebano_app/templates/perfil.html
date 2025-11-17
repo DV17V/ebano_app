@@ -45,9 +45,67 @@
                         <input id="telefono" name="telefono" type="text" value="{{ datos.telefono }}" placeholder="Ej: +57 300 1234567">
                     </div>
                     <div>
-                        <label for="direccion">Dirección</label>
-                        <input id="direccion" name="direccion" type="text" value="{{ datos.direccion }}" placeholder="Calle, número, ciudad">
+                        <label for="estado">Estado (EE.UU.)</label>
+                        <select id="estado" name="estado" required>
+                            <option value="">-- Selecciona tu estado --</option>
+                            <option value="AL" {% if datos.estado == 'AL' %}selected{% endif %}>Alabama</option>
+                            <option value="AK" {% if datos.estado == 'AK' %}selected{% endif %}>Alaska</option>
+                            <option value="AZ" {% if datos.estado == 'AZ' %}selected{% endif %}>Arizona</option>
+                            <option value="AR" {% if datos.estado == 'AR' %}selected{% endif %}>Arkansas</option>
+                            <option value="CA" {% if datos.estado == 'CA' %}selected{% endif %}>California</option>
+                            <option value="CO" {% if datos.estado == 'CO' %}selected{% endif %}>Colorado</option>
+                            <option value="CT" {% if datos.estado == 'CT' %}selected{% endif %}>Connecticut</option>
+                            <option value="DE" {% if datos.estado == 'DE' %}selected{% endif %}>Delaware</option>
+                            <option value="FL" {% if datos.estado == 'FL' %}selected{% endif %}>Florida</option>
+                            <option value="GA" {% if datos.estado == 'GA' %}selected{% endif %}>Georgia</option>
+                            <option value="HI" {% if datos.estado == 'HI' %}selected{% endif %}>Hawaii</option>
+                            <option value="ID" {% if datos.estado == 'ID' %}selected{% endif %}>Idaho</option>
+                            <option value="IL" {% if datos.estado == 'IL' %}selected{% endif %}>Illinois</option>
+                            <option value="IN" {% if datos.estado == 'IN' %}selected{% endif %}>Indiana</option>
+                            <option value="IA" {% if datos.estado == 'IA' %}selected{% endif %}>Iowa</option>
+                            <option value="KS" {% if datos.estado == 'KS' %}selected{% endif %}>Kansas</option>
+                            <option value="KY" {% if datos.estado == 'KY' %}selected{% endif %}>Kentucky</option>
+                            <option value="LA" {% if datos.estado == 'LA' %}selected{% endif %}>Louisiana</option>
+                            <option value="ME" {% if datos.estado == 'ME' %}selected{% endif %}>Maine</option>
+                            <option value="MD" {% if datos.estado == 'MD' %}selected{% endif %}>Maryland</option>
+                            <option value="MA" {% if datos.estado == 'MA' %}selected{% endif %}>Massachusetts</option>
+                            <option value="MI" {% if datos.estado == 'MI' %}selected{% endif %}>Michigan</option>
+                            <option value="MN" {% if datos.estado == 'MN' %}selected{% endif %}>Minnesota</option>
+                            <option value="MS" {% if datos.estado == 'MS' %}selected{% endif %}>Mississippi</option>
+                            <option value="MO" {% if datos.estado == 'MO' %}selected{% endif %}>Missouri</option>
+                            <option value="MT" {% if datos.estado == 'MT' %}selected{% endif %}>Montana</option>
+                            <option value="NE" {% if datos.estado == 'NE' %}selected{% endif %}>Nebraska</option>
+                            <option value="NV" {% if datos.estado == 'NV' %}selected{% endif %}>Nevada</option>
+                            <option value="NH" {% if datos.estado == 'NH' %}selected{% endif %}>New Hampshire</option>
+                            <option value="NJ" {% if datos.estado == 'NJ' %}selected{% endif %}>New Jersey</option>
+                            <option value="NM" {% if datos.estado == 'NM' %}selected{% endif %}>New Mexico</option>
+                            <option value="NY" {% if datos.estado == 'NY' %}selected{% endif %}>New York</option>
+                            <option value="NC" {% if datos.estado == 'NC' %}selected{% endif %}>North Carolina</option>
+                            <option value="ND" {% if datos.estado == 'ND' %}selected{% endif %}>North Dakota</option>
+                            <option value="OH" {% if datos.estado == 'OH' %}selected{% endif %}>Ohio</option>
+                            <option value="OK" {% if datos.estado == 'OK' %}selected{% endif %}>Oklahoma</option>
+                            <option value="OR" {% if datos.estado == 'OR' %}selected{% endif %}>Oregon</option>
+                            <option value="PA" {% if datos.estado == 'PA' %}selected{% endif %}>Pennsylvania</option>
+                            <option value="RI" {% if datos.estado == 'RI' %}selected{% endif %}>Rhode Island</option>
+                            <option value="SC" {% if datos.estado == 'SC' %}selected{% endif %}>South Carolina</option>
+                            <option value="SD" {% if datos.estado == 'SD' %}selected{% endif %}>South Dakota</option>
+                            <option value="TN" {% if datos.estado == 'TN' %}selected{% endif %}>Tennessee</option>
+                            <option value="TX" {% if datos.estado == 'TX' %}selected{% endif %}>Texas</option>
+                            <option value="UT" {% if datos.estado == 'UT' %}selected{% endif %}>Utah</option>
+                            <option value="VT" {% if datos.estado == 'VT' %}selected{% endif %}>Vermont</option>
+                            <option value="VA" {% if datos.estado == 'VA' %}selected{% endif %}>Virginia</option>
+                            <option value="WA" {% if datos.estado == 'WA' %}selected{% endif %}>Washington</option>
+                            <option value="WV" {% if datos.estado == 'WV' %}selected{% endif %}>West Virginia</option>
+                            <option value="WI" {% if datos.estado == 'WI' %}selected{% endif %}>Wisconsin</option>
+                            <option value="WY" {% if datos.estado == 'WY' %}selected{% endif %}>Wyoming</option>
+                            <option value="DC" {% if datos.estado == 'DC' %}selected{% endif %}>District of Columbia</option>
+                        </select>
                     </div>
+                </div>
+
+                <div class="form-grupo">
+                    <label for="direccion">Dirección</label>
+                    <input id="direccion" name="direccion" type="text" value="{{ datos.direccion }}" placeholder="Calle, número, ciudad">
                 </div>
 
                 <div class="form-acciones">

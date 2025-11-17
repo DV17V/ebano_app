@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 import os
 import requests
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, IntegerField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, IntegerField, SelectField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, NumberRange
 from bd_config import get_connection
 import bcrypt
@@ -196,6 +196,62 @@ def format_usd(value):
 app.jinja_env.filters['cop'] = format_cop
 app.jinja_env.filters['usd'] = format_usd
 
+# Lista de estados de EE.UU. (50 estados + DC)
+US_STATES = [
+    ('', '-- Selecciona tu estado --'),
+    ('AL', 'Alabama'),
+    ('AK', 'Alaska'),
+    ('AZ', 'Arizona'),
+    ('AR', 'Arkansas'),
+    ('CA', 'California'),
+    ('CO', 'Colorado'),
+    ('CT', 'Connecticut'),
+    ('DE', 'Delaware'),
+    ('FL', 'Florida'),
+    ('GA', 'Georgia'),
+    ('HI', 'Hawaii'),
+    ('ID', 'Idaho'),
+    ('IL', 'Illinois'),
+    ('IN', 'Indiana'),
+    ('IA', 'Iowa'),
+    ('KS', 'Kansas'),
+    ('KY', 'Kentucky'),
+    ('LA', 'Louisiana'),
+    ('ME', 'Maine'),
+    ('MD', 'Maryland'),
+    ('MA', 'Massachusetts'),
+    ('MI', 'Michigan'),
+    ('MN', 'Minnesota'),
+    ('MS', 'Mississippi'),
+    ('MO', 'Missouri'),
+    ('MT', 'Montana'),
+    ('NE', 'Nebraska'),
+    ('NV', 'Nevada'),
+    ('NH', 'New Hampshire'),
+    ('NJ', 'New Jersey'),
+    ('NM', 'New Mexico'),
+    ('NY', 'New York'),
+    ('NC', 'North Carolina'),
+    ('ND', 'North Dakota'),
+    ('OH', 'Ohio'),
+    ('OK', 'Oklahoma'),
+    ('OR', 'Oregon'),
+    ('PA', 'Pennsylvania'),
+    ('RI', 'Rhode Island'),
+    ('SC', 'South Carolina'),
+    ('SD', 'South Dakota'),
+    ('TN', 'Tennessee'),
+    ('TX', 'Texas'),
+    ('UT', 'Utah'),
+    ('VT', 'Vermont'),
+    ('VA', 'Virginia'),
+    ('WA', 'Washington'),
+    ('WV', 'West Virginia'),
+    ('WI', 'Wisconsin'),
+    ('WY', 'Wyoming'),
+    ('DC', 'District of Columbia')
+]
+
 
 # ------------------------------------------------------------
 # RUTA DE DEBUGGING: Ver tasa actual
@@ -275,6 +331,7 @@ class RegistroForm(FlaskForm):
     contraseña = PasswordField("Contraseña", validators=[DataRequired(), Length(min=6)])
     confirmar = PasswordField("Confirmar contraseña", validators=[DataRequired(), EqualTo("contraseña")])
     telefono = StringField("Teléfono", validators=[DataRequired(), Length(min=7, max=50)])
+    estado = SelectField("Estado (EE.UU.)", validators=[DataRequired()], choices=US_STATES)
     direccion = StringField("Dirección", validators=[DataRequired(), Length(min=5)])
     submit = SubmitField("Registrarse")
 
@@ -342,7 +399,14 @@ def registro():
         correo = form.correo.data.lower().strip()
         nombre_completo = form.nombre_completo.data.strip()
         telefono = form.telefono.data.strip()
+        estado = form.estado.data.strip()
         direccion = form.direccion.data.strip()
+
+        # Validación extra: asegurar que el estado sea válido
+        valid_states = [s[0] for s in US_STATES if s[0]]  # Excluir la opción vacía
+        if estado not in valid_states:
+            flash("Por favor, selecciona un estado válido de EE.UU.", "warning")
+            return redirect(url_for("registro"))
 
         conn = get_connection()
         if not conn:
@@ -360,8 +424,8 @@ def registro():
             hashed = bcrypt.hashpw(form.contraseña.data.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
             insert_q = """
                 INSERT INTO usuarios
-                (nombre_usuario, correo, contraseña, rol, nombre_completo, telefono, direccion)
-                VALUES (:nombre_usuario, :correo, :contraseña, :rol, :nombre_completo, :telefono, :direccion)
+                (nombre_usuario, correo, contraseña, rol, nombre_completo, telefono, estado, direccion, pais)
+                VALUES (:nombre_usuario, :correo, :contraseña, :rol, :nombre_completo, :telefono, :estado, :direccion, :pais)
                 RETURNING id;
             """
             nombre_usuario = correo.split("@")[0]
@@ -372,7 +436,9 @@ def registro():
                            rol="cliente",
                            nombre_completo=nombre_completo,
                            telefono=telefono,
-                           direccion=direccion)
+                           estado=estado,
+                           direccion=direccion,
+                           pais="United States")
             conn.commit()
             new_id = res[0][0] if res else None
             conn.close()
@@ -1126,7 +1192,7 @@ def perfil():
 @login_required
 def perfil_editar_datos():
     """
-    Actualiza los datos personales del usuario (nombre, teléfono, dirección).
+    Actualiza los datos personales del usuario (nombre, teléfono, estado, dirección).
     Solo para clientes.
     """
     if current_user.rol != "cliente":
@@ -1135,10 +1201,17 @@ def perfil_editar_datos():
     
     nombre = request.form.get("nombre", "").strip()
     telefono = request.form.get("telefono", "").strip()
+    estado = request.form.get("estado", "").strip()
     direccion = request.form.get("direccion", "").strip()
     
     if not nombre:
         flash("El nombre no puede estar vacío.", "warning")
+        return redirect(url_for("perfil"))
+    
+    # Validación: estado debe ser válido
+    valid_states = [s[0] for s in US_STATES if s[0]]
+    if estado and estado not in valid_states:
+        flash("Por favor, selecciona un estado válido de EE.UU.", "warning")
         return redirect(url_for("perfil"))
     
     conn = get_connection()
@@ -1151,12 +1224,14 @@ def perfil_editar_datos():
             UPDATE usuarios
             SET nombre_completo = :nombre,
                 telefono = :telefono,
+                estado = :estado,
                 direccion = :direccion
             WHERE id = :id;
         """
         conn.run(update_q,
                  nombre=nombre,
                  telefono=telefono,
+                 estado=estado,
                  direccion=direccion,
                  id=current_user.id)
         conn.commit()

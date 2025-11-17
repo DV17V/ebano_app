@@ -15,6 +15,16 @@
         <label for="telefono">Teléfono</label>
         {{ form.telefono(class="form-input") }}
 
+        <label for="estado">Estado (EE.UU.)</label>
+        {{ form.estado(class="form-input") }}
+        {% if form.estado.errors %}
+            <div class="error-messages">
+                {% for error in form.estado.errors %}
+                    <p class="error-text">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         <label for="direccion">Dirección</label>
         {{ form.direccion(class="form-input") }}
 
