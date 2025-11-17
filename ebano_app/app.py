@@ -1427,19 +1427,16 @@ def dashboard_admin():
 @login_required
 def dashboard_analitica():
     """
-    Muestra el dashboard de Metabase embebido con token JWT.
-    Ahora usando Metabase Cloud en lugar de Render.
+    Muestra el dashboard de Metabase Cloud embebido con token JWT.
     """
     if current_user.rol != "admin":
         flash("No tienes permisos para acceder a esta sección.", "danger")
         return redirect(url_for("dashboard_admin"))
     
-    # Configuración de Metabase Cloud
+    # Configuración desde .env
     METABASE_SITE_URL = os.getenv("METABASE_PROD_URL", "").strip()
     METABASE_SECRET_KEY = os.getenv("METABASE_PROD_SECRET_KEY", "").strip()
-    
-    # Dashboard ID (el que obtuvimos)
-    DASHBOARD_ID = 2
+    DASHBOARD_ID = os.getenv("DASHBOARD_ID", "2")  # ID por defecto
     
     print("=" * 60)
     print("🔍 DEBUG: Dashboard Analítica")
@@ -1454,39 +1451,63 @@ def dashboard_analitica():
         return redirect(url_for("dashboard_admin"))
     
     try:
+        # Convertir dashboard_id a int
+        dashboard_id_int = int(DASHBOARD_ID)
+
         # Crear payload JWT
-        current_timestamp = round(time.time())
+        current_timestamp = int(time.time())
+        # Mitigar problemas por desfase de reloj entre servidores: marcar iat 10s en el pasado
+        iat = current_timestamp - 10
+        # Expiración: 2 horas desde ahora
         expiration_time = current_timestamp + (60 * 120)  # 2 horas
-        
+
         payload = {
-            "resource": {"dashboard": DASHBOARD_ID},
+            "resource": {"dashboard": dashboard_id_int},
             "params": {},
             "exp": expiration_time,
-            "iat": current_timestamp
+            "iat": iat,
+            "nbf": iat
         }
         
         # Generar token JWT
         token = jwt.encode(payload, METABASE_SECRET_KEY, algorithm="HS256")
-        
+
         if isinstance(token, bytes):
             token = token.decode('utf-8')
-        
-        # Construir URL del iframe
+
+        # Asegurar que la URL base no tenga slash final
+        METABASE_SITE_URL = METABASE_SITE_URL.rstrip('/')
+
+        # Intento de validación rápida: decodificar el token con la misma clave
+        # para detectar problemas de firma antes de enviar al navegador.
+        try:
+            # Añadimos un leeway pequeño para tolerar ligeros desfases
+            decoded = jwt.decode(token, METABASE_SECRET_KEY, algorithms=["HS256"], leeway=10)
+            print("✅ Token JWT generado correctamente y verificado localmente")
+            print(f"🔍 Payload: {decoded}")
+        except Exception as e:
+            print("❌ Error validando token JWT localmente:", e)
+            # No abortamos; igual retornamos la URL para que el iframe muestre el error de Metabase
+
+        # Construir URL del iframe (embed)
         metabase_url = (
             f"{METABASE_SITE_URL}/embed/dashboard/{token}"
             f"#bordered=true&titled=true&theme=night"
         )
-        
-        print(f"✅ Token JWT generado correctamente")
+
         print(f"🔗 URL del dashboard: {metabase_url[:100]}...")
         print("=" * 60)
-        
+
         return render_template(
             "dashboard_analitica.html", 
             metabase_url=metabase_url,
             metabase_base_url=METABASE_SITE_URL
         )
         
+    except ValueError as ve:
+        print(f"❌ ERROR: DASHBOARD_ID debe ser un número: {ve}")
+        flash("Error: ID del dashboard inválido.", "danger")
+        return redirect(url_for("dashboard_admin"))
     except Exception as e:
         print(f"❌ ERROR al generar token: {e}")
         import traceback
