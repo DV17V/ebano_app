@@ -2,82 +2,132 @@
 {% block title %}{{ producto.nombre }} | Ébano{% endblock %}
 
 {% block content %}
-<section class="producto-detalle">
 
-    <!-- Bloque de mensajes flash -->
+<div class="container mt-4">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div class="flash-messages" style="max-width: 1100px; margin: 0 auto 2rem auto;">
-          {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-          {% endfor %}
-        </div>
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
       {% endif %}
     {% endwith %}
+</div>
 
-    <div class="producto-container">
-        <div class="producto-imagen">
-            {% if producto.imagen_url %}
-                <img src="{{ url_for('static', filename=producto.imagen_url) }}" alt="{{ producto.nombre }}">
-            {% else %}
-                <img src="{{ url_for('static', filename='img/default.png') }}" alt="{{ producto.nombre }}">
-            {% endif %}
-        </div>
+<section class="producto-detalle">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('tienda') }}">Tienda</a></li>
+                <li class="breadcrumb-item active">{{ producto.nombre }}</li>
+            </ol>
+        </nav>
 
-        <div class="producto-info">
-            <h1 class="producto-nombre">{{ producto.nombre }}</h1>
-            <p class="producto-descripcion">{{ producto.descripcion }}</p>
-
-            {% if mostrar_precios %}
-                <p class="producto-precio">
-                    Precio: <span>{{ producto.precio|usd }}</span>
-                </p>
-
-                <p class="stock">Stock disponible: {{ producto.stock }}</p>
-
-                <form method="POST" action="{{ url_for('agregar_carrito', producto_id=producto.id) }}" class="form-cantidad">
-                    <label>Cantidad:</label>
-                    <input type="number" name="cantidad" min="1" max="{{ producto.stock }}" value="1" required>
-                    <button type="submit" class="btn-artesanal">Añadir al carrito</button>
-                </form>
-
-                <a class="btn-artesanal" href="{{ url_for('crear_resena', product_id=producto.id) }}">
-                    <center>Escribir reseña</center>
-                </a>
-            {% else %}
-                <p class="aviso">Inicia sesión para ver precios y comprar.</p>
-            {% endif %}
-
-            <a href="{{ url_for('tienda') }}" class="boton-volver">← Volver a la tienda</a>
-        </div>
-    </div>
-
-    <hr class="separador-artesanal">
-
-    {% if reseñas and reseñas|length > 0 %}
-    <div class="lista-reseñas">
-        {% for r in reseñas %}
-            <div class="tarjeta-reseña">
-                <p class="texto-reseña">"{{ r.comentario }}"</p>
-
-                <p class="autor-reseña">
-                    – {{ r.nombre_completo }}
-                    <span class="fecha-reseña">{{ r.fecha.strftime('%d/%m/%Y') }}</span>
-                </p>
-
-                {% if r.calificacion %}
-                <p class="calificacion">
-                    {% for i in range(r.calificacion|int) %}
-                        ⭐
-                    {% endfor %}
-                </p>
-                {% endif %}
+        <div class="row g-5">
+            <div class="col-lg-6">
+                <div class="producto-imagen-detalle">
+                    {% if producto.imagen_url %}
+                        <img src="{{ url_for('static', filename=producto.imagen_url) }}" alt="{{ producto.nombre }}" class="img-fluid">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/default.png') }}" alt="{{ producto.nombre }}" class="img-fluid">
+                    {% endif %}
+                </div>
             </div>
-        {% endfor %}
-    </div>
-    {% else %}
-        <p class="sin-reseñas">Aún no hay reseñas para este vino. ¡Sé el primero en opinar!</p>
-    {% endif %}
 
+            <div class="col-lg-6">
+                <div class="producto-info-detalle">
+                    <h1 class="producto-titulo">{{ producto.nombre }}</h1>
+                    <p class="producto-descripcion-detalle">{{ producto.descripcion }}</p>
+
+                    {% if mostrar_precios %}
+                        <div class="producto-precio-detalle">
+                            <span class="precio-label">Precio:</span>
+                            <span class="precio-valor">{{ producto.precio|usd }}</span>
+                        </div>
+
+                        <div class="producto-stock-detalle">
+                            <i class="bi bi-box-seam"></i>
+                            <span>Stock disponible: <strong>{{ producto.stock }}</strong> unidades</span>
+                        </div>
+
+                        <form method="POST" action="{{ url_for('agregar_carrito', producto_id=producto.id) }}" class="form-agregar-detalle">
+                            <div class="cantidad-selector">
+                                <label for="cantidad">Cantidad:</label>
+                                <input type="number" id="cantidad" name="cantidad" min="1" max="{{ producto.stock }}" value="1" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-agregar-grande">
+                                <i class="bi bi-cart-plus"></i> Añadir al carrito
+                            </button>
+                        </form>
+
+                        <a class="btn btn-resena-outline w-100" href="{{ url_for('crear_resena', product_id=producto.id) }}">
+                            <i class="bi bi-star"></i> Escribir reseña
+                        </a>
+                    {% else %}
+                        <div class="aviso-precio">
+                            <i class="bi bi-lock-fill"></i>
+                            <p>Inicia sesión para ver precios y comprar</p>
+                            <a href="{{ url_for('login') }}" class="btn btn-login-detalle">
+                                <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    <a href="{{ url_for('tienda') }}" class="btn btn-volver-tienda">
+                        <i class="bi bi-arrow-left"></i> Volver a la tienda
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="resenas-seccion">
+                    <h2 class="resenas-titulo">
+                        <i class="bi bi-chat-quote"></i> Opiniones de nuestros clientes
+                    </h2>
+
+                    {% if reseñas and reseñas|length > 0 %}
+                        <div class="row g-4">
+                            {% for r in reseñas %}
+                            <div class="col-md-6">
+                                <div class="resena-card">
+                                    <div class="resena-header">
+                                        <div class="resena-avatar">
+                                            <i class="bi bi-person-circle"></i>
+                                        </div>
+                                        <div class="resena-info">
+                                            <strong class="resena-autor">{{ r.nombre_completo }}</strong>
+                                            <div class="resena-calificacion">
+                                                {% for i in range(r.calificacion|int) %}
+                                                    <i class="bi bi-star-fill"></i>
+                                                {% endfor %}
+                                                {% for i in range(5 - r.calificacion|int) %}
+                                                    <i class="bi bi-star"></i>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <span class="resena-fecha">{{ r.fecha.strftime('%d/%m/%Y') }}</span>
+                                    </div>
+                                    <p class="resena-comentario">"{{ r.comentario }}"</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="sin-resenas-box">
+                            <i class="bi bi-chat-dots"></i>
+                            <p>Aún no hay reseñas para este vino.</p>
+                            <p class="small">¡Sé el primero en compartir tu opinión!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
+
 {% endblock %}

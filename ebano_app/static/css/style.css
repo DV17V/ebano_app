@@ -341,7 +341,7 @@ nav ul li a:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(75,30,36,0.85) 0%, rgba(107,45,52,0.75) 50%, rgba(139,61,68,0.65) 100%);
+    background: linear-gradient(135deg, rgba(129, 62, 71, 0.527) 0%, rgba(107,45,52,0.75) 50%, rgba(139,61,68,0.65) 100%);
     z-index: 1;
 }
 
@@ -879,109 +879,362 @@ nav ul li a:hover {
 }
 
 /* ===========================
-   DETALLE DE PRODUCTO - ÉBANO
+   DETALLE DE PRODUCTO
 =========================== */
+
 .producto-detalle {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 4rem 2rem;
+    padding: 2rem 0 4rem 0;
     background-color: #f5f2ef;
 }
 
-.producto-container {
-    display: flex;
-    flex-wrap: wrap;
-    max-width: 1100px;
-    background-color: #fff;
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+.breadcrumb-item a {
+    color: var(--vino-medio);
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--dorado);
+}
+
+.breadcrumb-item.active {
+    color: #666;
+}
+
+.producto-imagen-detalle {
+    background: white;
+    padding: 2rem;
     border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
 
-.producto-imagen {
-    flex: 1 1 400px;
-    min-width: 300px;
-    max-width: 500px;
-    background-color: #f9f9f900;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1.5rem;
-    min-height: 320px; /* aporta espacio para mostrar la imagen completa */
-}
-
-.producto-imagen img {
+.producto-imagen-detalle img {
+    max-height: 500px;
     width: auto;
-    height: 100%;
-    max-width: 100%;
-    object-fit: contain; /* muestra la imagen completa y centrada */
-    border-radius: 12px;
-    background-color: #f9f9f900;
-    display: block;
+    object-fit: contain;
 }
 
-.producto-info {
-    flex: 1 1 400px;
-    padding: 2rem 2.5rem;
+.producto-info-detalle {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.producto-titulo {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #3b1b14;
+    margin-bottom: 1.5rem;
+}
+
+.producto-descripcion-detalle {
+    font-size: 1.1rem;
+    color: #5a4a44;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+}
+
+.producto-precio-detalle {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #faf6f2 0%, #f5ebe1 100%);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--dorado);
+}
+
+.precio-label {
+    font-size: 1.1rem;
+    color: #7a4b3a;
+    font-weight: 600;
+}
+
+.precio-valor {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #7c1823;
+}
+
+.producto-stock-detalle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #3b1b14;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+.producto-stock-detalle i {
+    color: var(--dorado);
+    font-size: 1.2rem;
+}
+
+.form-agregar-detalle {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-}
-
-.producto-nombre {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #3b1b14;
+    gap: 1rem;
     margin-bottom: 1rem;
 }
 
-.producto-descripcion {
+.cantidad-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cantidad-selector label {
+    font-weight: 600;
+    color: #3b1b14;
+    margin: 0;
+    min-width: 80px;
+}
+
+.cantidad-selector .form-control {
+    width: 100px;
+    text-align: center;
+    border: 2px solid #e6ded6;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.btn-agregar-grande {
+    background: linear-gradient(135deg, var(--vino-oscuro) 0%, var(--vino-medio) 100%);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 12px;
     font-size: 1.1rem;
-    color: #5a4a44;
-    margin-bottom: 1.5rem;
-    line-height: 1.5;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
 
-.producto-precio {
-    font-size: 1.3rem;
-    color: #7c1823;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
+.btn-agregar-grande:hover {
+    background: linear-gradient(135deg, var(--vino-medio) 0%, var(--vino-oscuro) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(75, 30, 36, 0.3);
+    color: white;
 }
 
-.producto-precio span {
-    font-size: 1.6rem;
+.btn-resena-outline {
+    background: transparent;
+    color: var(--dorado);
+    border: 2px solid var(--dorado);
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.btn-resena-outline:hover {
+    background: var(--dorado);
+    color: white;
+    transform: translateY(-2px);
 }
 
 .aviso-precio {
-    font-size: 1rem;
-    color: #b52d35;
-    font-style: italic;
+    text-align: center;
+    padding: 3rem 2rem;
+    background: #fff7e6;
+    border-radius: 12px;
+    border: 2px dashed var(--dorado);
+    margin-bottom: 2rem;
+}
+
+.aviso-precio i {
+    font-size: 3rem;
+    color: var(--dorado);
+    margin-bottom: 1rem;
+}
+
+.aviso-precio p {
+    color: #7a5800;
+    font-size: 1.1rem;
     margin-bottom: 1.5rem;
 }
 
-.boton-comprar,
-.boton-volver {
-    display: inline-block;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    background-color: #7c1823;
-    color: #fff;
+.btn-login-detalle {
+    background: var(--dorado);
+    color: var(--vino-oscuro);
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    font-weight: 600;
     text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.btn-login-detalle:hover {
+    background: var(--vino-oscuro);
+    color: white;
+    transform: scale(1.05);
+}
+
+.btn-volver-tienda {
+    background: transparent;
+    color: var(--vino-oscuro);
+    border: 2px solid var(--vino-oscuro);
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.btn-volver-tienda:hover {
+    background: var(--vino-oscuro);
+    color: white;
+    transform: translateX(-5px);
+}
+
+/* Sección de Reseñas */
+.resenas-seccion {
+    background: white;
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.resenas-titulo {
+    color: #3b1b14;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.resenas-titulo i {
+    color: var(--dorado);
+}
+
+.resena-card {
+    background: #faf6f2;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--dorado);
+    height: 100%;
+}
+
+.resena-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.resena-avatar {
+    font-size: 2.5rem;
+    color: var(--vino-medio);
+}
+
+.resena-info {
+    flex-grow: 1;
+}
+
+.resena-autor {
+    display: block;
+    color: #3b1b14;
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+}
+
+.resena-calificacion i {
+    color: var(--dorado);
+    font-size: 0.9rem;
+}
+
+.resena-fecha {
+    color: #7a4b3a;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.resena-comentario {
+    color: #5a4a44;
+    font-style: italic;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.sin-resenas-box {
     text-align: center;
-    font-weight: bold;
-    transition: background 0.3s ease;
+    padding: 3rem 2rem;
+    background: #faf6f2;
+    border-radius: 12px;
+    border: 2px dashed #d4c1a2;
 }
 
-.boton-comprar:hover,
-.boton-volver:hover {
-    background-color: #5a0f18;
+.sin-resenas-box i {
+    font-size: 3rem;
+    color: var(--dorado);
+    margin-bottom: 1rem;
 }
 
-.boton-volver {
-    margin-top: 1.2rem;
-    background-color: #3b1b14;
+.sin-resenas-box p {
+    color: #7a4b3a;
+    margin-bottom: 0.5rem;
+}
+
+.sin-resenas-box .small {
+    font-size: 0.9rem;
+    color: #999;
+}
+
+/* Responsive Detalle Producto */
+@media (max-width: 991px) {
+    .producto-titulo {
+        font-size: 1.8rem;
+    }
+    
+    .producto-info-detalle {
+        margin-top: 2rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .producto-detalle {
+        padding: 1rem 0 3rem 0;
+    }
+    
+    .producto-info-detalle {
+        padding: 1.5rem;
+    }
+    
+    .producto-titulo {
+        font-size: 1.5rem;
+    }
+    
+    .precio-valor {
+        font-size: 1.5rem;
+    }
+    
+    .cantidad-selector {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .cantidad-selector .form-control {
+        width: 100%;
+    }
+    
+    .resenas-seccion {
+        padding: 2rem 1.5rem;
+    }
 }
 
 /* ===========================
