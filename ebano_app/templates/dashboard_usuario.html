@@ -7,7 +7,6 @@
     <div class="dashboard-container">
         <h1 class="titulo-dashboard">Bienvenido, {{ usuario.nombre_completo or usuario.nombre_usuario }}</h1>
         <p class="subtitulo-dashboard">Tu espacio personal en Ébano</p>
-
         <div class="tarjetas-dashboard">
             <div class="tarjeta-usuario">
                 <img src="{{ url_for('static', filename='img/icon-pedidos.png') }}" alt="Pedidos">
