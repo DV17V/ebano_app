@@ -13,6 +13,12 @@
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
+<!-- Loading Overlay Global -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner-ebano"></div>
+    <p>Cargando...</p>
+</div>
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-vino fixed-top">
@@ -106,6 +112,61 @@
             </div>
         </div>
     </nav>
+<!-- ============================================
+     MENSAJES FLASH GLOBALES (Mejorados)
+============================================= -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+        <div class="alert-ebano alert-{{ category }}">
+          {% if category == 'success' %}
+            <i class="bi bi-check-circle-fill"></i>
+          {% elif category == 'danger' %}
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          {% elif category == 'warning' %}
+            <i class="bi bi-exclamation-circle-fill"></i>
+          {% else %}
+            <i class="bi bi-info-circle-fill"></i>
+          {% endif %}
+          
+          <div class="alert-content">
+            <strong>
+              {% if category == 'success' %}¡Éxito!
+              {% elif category == 'danger' %}Error
+              {% elif category == 'warning' %}Atención
+              {% else %}Información{% endif %}
+            </strong>
+            <p>{{ message }}</p>
+          </div>
+          
+          <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Script para auto-cerrar después de 5 segundos -->
+    <script>
+      setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert-ebano');
+        alerts.forEach(function(alert) {
+          alert.style.animation = 'slideOutRight 0.4s ease-out';
+          setTimeout(() => alert.remove(), 400);
+        });
+      }, 5000);
+    </script>
+  {% endif %}
+{% endwith %}
+
+<!-- Animación de salida -->
+<style>
+@keyframes slideOutRight {
+  to {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+}
+</style>
 
     <main style="padding-top: 70px;">
         {% block content %}{% endblock %}

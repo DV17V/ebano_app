@@ -2,18 +2,218 @@
 {% block title %}Iniciar sesión | Ébano{% endblock %}
 
 {% block content %}
-<section class="form-container">
-    <h2>Iniciar sesión</h2>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <label for="correo">Correo electrónico</label>
-        {{ form.correo(class="form-input") }}
+<!-- Loading Overlay Global -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner-ebano"></div>
+    <p>Iniciando sesión...</p>
+</div>
 
-        <label for="contraseña">Contraseña</label>
-        {{ form.contraseña(class="form-input") }}
+<!-- Mensajes Flash Mejorados -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+        <div class="alert-ebano alert-{{ category }}">
+          {% if category == 'success' %}
+            <i class="bi bi-check-circle-fill"></i>
+          {% elif category == 'danger' %}
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          {% elif category == 'warning' %}
+            <i class="bi bi-exclamation-circle-fill"></i>
+          {% else %}
+            <i class="bi bi-info-circle-fill"></i>
+          {% endif %}
+          <div class="alert-content">
+            <strong>
+              {% if category == 'success' %}¡Éxito!
+              {% elif category == 'danger' %}Error
+              {% elif category == 'warning' %}Atención
+              {% else %}Información{% endif %}
+            </strong>
+            <p>{{ message }}</p>
+          </div>
+          <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
 
-        {{ form.submit(class="boton") }}
-    </form>
-    <p>¿No tienes cuenta? <a href="{{ url_for('registro') }}">Regístrate aquí</a>.</p>
-</section>
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Logo -->
+            <div class="auth-logo">
+                <i class="bi bi-cup-hot-fill"></i>
+            </div>
+            
+            <!-- Header -->
+            <div class="auth-header">
+                <h1 class="auth-title">Bienvenido a Ébano</h1>
+                <p class="auth-subtitle">Inicia sesión para continuar</p>
+            </div>
+
+            <!-- Formulario -->
+            <form method="POST" class="auth-form" id="loginForm">
+                {{ form.hidden_tag() }}
+                
+                <!-- Email -->
+                <div class="input-group-auth">
+                    <label for="correo">Correo electrónico</label>
+                    <div class="input-wrapper" id="emailWrapper">
+                        <i class="bi bi-envelope-fill"></i>
+                        {{ form.correo(
+                            id="correo",
+                            type="email",
+                            placeholder="correo@ejemplo.com",
+                            required=true,
+                            autocomplete="email"
+                        ) }}
+                        <span class="error-message">Por favor ingresa un correo válido</span>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="input-group-auth">
+                    <label for="contraseña">Contraseña</label>
+                    <div class="input-wrapper" id="passwordWrapper">
+                        <i class="bi bi-lock-fill"></i>
+                        {{ form.contraseña(
+                            id="contraseña",
+                            type="password",
+                            placeholder="••••••••",
+                            required=true,
+                            autocomplete="current-password"
+                        ) }}
+                        <i class="bi bi-eye-fill password-toggle" id="togglePassword"></i>
+                        <span class="error-message">La contraseña es requerida</span>
+                    </div>
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="auth-links">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="remember" name="remember">
+                        <label for="remember">Recordarme</label>
+                    </div>
+                    <a href="#">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <!-- Submit Button -->
+                {{ form.submit(class="btn-auth-submit", id="submitBtn", value="Iniciar sesión") }}
+            </form>
+
+            <!-- Divider -->
+            <div class="auth-divider">
+                <span>O continúa con</span>
+            </div>
+
+            <!-- Social Login (Placeholder) -->
+            <div style="display: flex; gap: 1rem;">
+                <button type="button" class="btn btn-outline-secondary w-100" disabled>
+                    <i class="bi bi-google"></i> Google
+                </button>
+                <button type="button" class="btn btn-outline-secondary w-100" disabled>
+                    <i class="bi bi-facebook"></i> Facebook
+                </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="auth-footer">
+                <p>¿No tienes cuenta? <a href="{{ url_for('registro') }}">Regístrate aquí</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('contraseña');
+    const emailInput = document.getElementById('correo');
+    const emailWrapper = document.getElementById('emailWrapper');
+    const passwordWrapper = document.getElementById('passwordWrapper');
+
+    // Toggle Password Visibility
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.classList.toggle('bi-eye-fill');
+        this.classList.toggle('bi-eye-slash-fill');
+    });
+
+    // Email Validation
+    emailInput.addEventListener('blur', function() {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(this.value)) {
+            emailWrapper.classList.add('error');
+            emailWrapper.classList.remove('success');
+        } else {
+            emailWrapper.classList.remove('error');
+            emailWrapper.classList.add('success');
+        }
+    });
+
+    // Password Validation
+    passwordInput.addEventListener('blur', function() {
+        if (this.value.length < 1) {
+            passwordWrapper.classList.add('error');
+            passwordWrapper.classList.remove('success');
+        } else {
+            passwordWrapper.classList.remove('error');
+            passwordWrapper.classList.add('success');
+        }
+    });
+
+    // Form Submit con Loading
+    form.addEventListener('submit', function(e) {
+        // Validar antes de enviar
+        let isValid = true;
+
+        if (!emailInput.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value)) {
+            emailWrapper.classList.add('error');
+            isValid = false;
+        }
+
+        if (!passwordInput.value || passwordInput.value.length < 1) {
+            passwordWrapper.classList.add('error');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            return false;
+        }
+
+        // Mostrar loading
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        loadingOverlay.classList.add('active');
+    });
+
+    // Auto-cerrar flash messages después de 5 segundos
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert-ebano');
+        alerts.forEach(function(alert) {
+            alert.style.animation = 'slideOutRight 0.4s ease-out';
+            setTimeout(() => alert.remove(), 400);
+        });
+    }, 5000);
+});
+
+// Animación de salida para alerts
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideOutRight {
+        to {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
 {% endblock %}

@@ -2,40 +2,438 @@
 {% block title %}Registro | Ébano{% endblock %}
 
 {% block content %}
-<section class="form-container">
-    <h2>Crear cuenta</h2>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <label for="nombre_completo">Nombre completo</label>
-        {{ form.nombre_completo(class="form-input") }}
+<!-- Loading Overlay Global -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner-ebano"></div>
+    <p>Creando tu cuenta...</p>
+</div>
 
-        <label for="correo">Correo electrónico</label>
-        {{ form.correo(class="form-input") }}
+<!-- Mensajes Flash Mejorados -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+        <div class="alert-ebano alert-{{ category }}">
+          {% if category == 'success' %}
+            <i class="bi bi-check-circle-fill"></i>
+          {% elif category == 'danger' %}
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          {% elif category == 'warning' %}
+            <i class="bi bi-exclamation-circle-fill"></i>
+          {% else %}
+            <i class="bi bi-info-circle-fill"></i>
+          {% endif %}
+          <div class="alert-content">
+            <strong>
+              {% if category == 'success' %}¡Éxito!
+              {% elif category == 'danger' %}Error
+              {% elif category == 'warning' %}Atención
+              {% else %}Información{% endif %}
+            </strong>
+            <p>{{ message }}</p>
+          </div>
+          <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
 
-        <label for="telefono">Teléfono</label>
-        {{ form.telefono(class="form-input") }}
-
-        <label for="estado">Estado (EE.UU.)</label>
-        {{ form.estado(class="form-input") }}
-        {% if form.estado.errors %}
-            <div class="error-messages">
-                {% for error in form.estado.errors %}
-                    <p class="error-text">{{ error }}</p>
-                {% endfor %}
+<div class="auth-page">
+    <div class="auth-container" style="max-width: 550px;">
+        <div class="auth-card">
+            <!-- Logo -->
+            <div class="auth-logo">
+                <i class="bi bi-person-plus-fill"></i>
             </div>
-        {% endif %}
+            
+            <!-- Header -->
+            <div class="auth-header">
+                <h1 class="auth-title">Únete a Ébano</h1>
+                <p class="auth-subtitle">Crea tu cuenta y disfruta de nuestros vinos</p>
+            </div>
 
-        <label for="direccion">Dirección</label>
-        {{ form.direccion(class="form-input") }}
+            <!-- Formulario -->
+            <form method="POST" class="auth-form" id="registroForm">
+                {{ form.hidden_tag() }}
+                
+                <!-- Nombre Completo -->
+                <div class="input-group-auth">
+                    <label for="nombre_completo">Nombre completo</label>
+                    <div class="input-wrapper" id="nombreWrapper">
+                        <i class="bi bi-person-fill"></i>
+                        {{ form.nombre_completo(
+                            id="nombre_completo",
+                            type="text",
+                            placeholder="Juan Pérez",
+                            required=true,
+                            autocomplete="name"
+                        ) }}
+                        <span class="error-message">El nombre debe tener al menos 3 caracteres</span>
+                    </div>
+                </div>
 
-        <label for="contraseña">Contraseña</label>
-        {{ form.contraseña(class="form-input") }}
+                <!-- Email -->
+                <div class="input-group-auth">
+                    <label for="correo">Correo electrónico</label>
+                    <div class="input-wrapper" id="emailWrapper">
+                        <i class="bi bi-envelope-fill"></i>
+                        {{ form.correo(
+                            id="correo",
+                            type="email",
+                            placeholder="correo@ejemplo.com",
+                            required=true,
+                            autocomplete="email"
+                        ) }}
+                        <span class="error-message">Por favor ingresa un correo válido</span>
+                    </div>
+                </div>
 
-        <label for="confirmar">Confirmar contraseña</label>
-        {{ form.confirmar(class="form-input") }}
+                <!-- Teléfono -->
+                <div class="input-group-auth">
+                    <label for="telefono">Teléfono</label>
+                    <div class="input-wrapper" id="telefonoWrapper">
+                        <i class="bi bi-telephone-fill"></i>
+                        {{ form.telefono(
+                            id="telefono",
+                            type="tel",
+                            placeholder="+57 300 123 4567",
+                            required=true,
+                            autocomplete="tel"
+                        ) }}
+                        <span class="error-message">El teléfono debe tener al menos 7 caracteres</span>
+                    </div>
+                </div>
 
-        {{ form.submit(class="boton") }}
-    </form>
-    <p>¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Inicia sesión</a>.</p>
-</section>
+                <!-- Estado -->
+                <div class="input-group-auth">
+                    <label for="estado">Estado (EE.UU.)</label>
+                    <div class="input-wrapper" id="estadoWrapper">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        {{ form.estado(
+                            id="estado",
+                            required=true
+                        ) }}
+                        <span class="error-message">Por favor selecciona un estado</span>
+                    </div>
+                </div>
+
+                <!-- Dirección -->
+                <div class="input-group-auth">
+                    <label for="direccion">Dirección</label>
+                    <div class="input-wrapper" id="direccionWrapper">
+                        <i class="bi bi-house-fill"></i>
+                        {{ form.direccion(
+                            id="direccion",
+                            type="text",
+                            placeholder="Calle 123, Ciudad",
+                            required=true,
+                            autocomplete="street-address"
+                        ) }}
+                        <span class="error-message">La dirección debe tener al menos 5 caracteres</span>
+                    </div>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="input-group-auth">
+                    <label for="contraseña">Contraseña</label>
+                    <div class="input-wrapper" id="passwordWrapper">
+                        <i class="bi bi-lock-fill"></i>
+                        {{ form.contraseña(
+                            id="contraseña",
+                            type="password",
+                            placeholder="Mínimo 6 caracteres",
+                            required=true,
+                            minlength="6",
+                            autocomplete="new-password"
+                        ) }}
+                        <i class="bi bi-eye-fill password-toggle" id="togglePassword"></i>
+                        <span class="error-message">La contraseña debe tener al menos 6 caracteres</span>
+                    </div>
+                    <!-- Password Strength Indicator -->
+                    <div class="password-strength" id="passwordStrength">
+                        <div class="strength-bar"></div>
+                        <div class="strength-bar"></div>
+                        <div class="strength-bar"></div>
+                    </div>
+                    <small class="strength-text" id="strengthText"></small>
+                </div>
+
+                <!-- Confirmar Contraseña -->
+                <div class="input-group-auth">
+                    <label for="confirmar">Confirmar contraseña</label>
+                    <div class="input-wrapper" id="confirmWrapper">
+                        <i class="bi bi-lock-fill"></i>
+                        {{ form.confirmar(
+                            id="confirmar",
+                            type="password",
+                            placeholder="Repite tu contraseña",
+                            required=true,
+                            minlength="6",
+                            autocomplete="new-password"
+                        ) }}
+                        <i class="bi bi-eye-fill password-toggle" id="toggleConfirm"></i>
+                        <span class="error-message">Las contraseñas no coinciden</span>
+                    </div>
+                </div>
+
+                <!-- Términos y Condiciones -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <label for="terms">Acepto los <a href="#" style="color: var(--vino-oscuro); font-weight: 600;">términos y condiciones</a></label>
+                </div>
+
+                <!-- Submit Button -->
+                {{ form.submit(class="btn-auth-submit", id="submitBtn", value="Crear cuenta") }}
+            </form>
+
+            <!-- Divider -->
+            <div class="auth-divider">
+                <span>O regístrate con</span>
+            </div>
+
+            <!-- Social Login (Placeholder) -->
+            <div style="display: flex; gap: 1rem;">
+                <button type="button" class="btn btn-outline-secondary w-100" disabled>
+                    <i class="bi bi-google"></i> Google
+                </button>
+                <button type="button" class="btn btn-outline-secondary w-100" disabled>
+                    <i class="bi bi-facebook"></i> Facebook
+                </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="auth-footer">
+                <p>¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Inicia sesión aquí</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registroForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    
+    // Inputs
+    const nombreInput = document.getElementById('nombre_completo');
+    const emailInput = document.getElementById('correo');
+    const telefonoInput = document.getElementById('telefono');
+    const estadoInput = document.getElementById('estado');
+    const direccionInput = document.getElementById('direccion');
+    const passwordInput = document.getElementById('contraseña');
+    const confirmInput = document.getElementById('confirmar');
+    
+    // Wrappers
+    const nombreWrapper = document.getElementById('nombreWrapper');
+    const emailWrapper = document.getElementById('emailWrapper');
+    const telefonoWrapper = document.getElementById('telefonoWrapper');
+    const estadoWrapper = document.getElementById('estadoWrapper');
+    const direccionWrapper = document.getElementById('direccionWrapper');
+    const passwordWrapper = document.getElementById('passwordWrapper');
+    const confirmWrapper = document.getElementById('confirmWrapper');
+    
+    // Password toggles
+    const togglePassword = document.getElementById('togglePassword');
+    const toggleConfirm = document.getElementById('toggleConfirm');
+    
+    // Password strength
+    const passwordStrength = document.getElementById('passwordStrength');
+    const strengthText = document.getElementById('strengthText');
+
+    // Toggle Password Visibility
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.classList.toggle('bi-eye-fill');
+        this.classList.toggle('bi-eye-slash-fill');
+    });
+
+    toggleConfirm.addEventListener('click', function() {
+        const type = confirmInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmInput.setAttribute('type', type);
+        this.classList.toggle('bi-eye-fill');
+        this.classList.toggle('bi-eye-slash-fill');
+    });
+
+    // Password Strength Checker
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        let strength = 0;
+
+        if (password.length >= 6) strength++;
+        if (password.length >= 10) strength++;
+        if (/[A-Z]/.test(password) && /[a-z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+        passwordStrength.className = 'password-strength';
+        strengthText.className = 'strength-text';
+
+        if (strength <= 2) {
+            passwordStrength.classList.add('weak');
+            strengthText.classList.add('weak');
+            strengthText.textContent = '❌ Débil';
+        } else if (strength <= 3) {
+            passwordStrength.classList.add('medium');
+            strengthText.classList.add('medium');
+            strengthText.textContent = '⚠️ Media';
+        } else {
+            passwordStrength.classList.add('strong');
+            strengthText.classList.add('strong');
+            strengthText.textContent = '✅ Fuerte';
+        }
+    });
+
+    // Validaciones individuales
+    nombreInput.addEventListener('blur', function() {
+        if (this.value.length < 3) {
+            nombreWrapper.classList.add('error');
+            nombreWrapper.classList.remove('success');
+        } else {
+            nombreWrapper.classList.remove('error');
+            nombreWrapper.classList.add('success');
+        }
+    });
+
+    emailInput.addEventListener('blur', function() {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(this.value)) {
+            emailWrapper.classList.add('error');
+            emailWrapper.classList.remove('success');
+        } else {
+            emailWrapper.classList.remove('error');
+            emailWrapper.classList.add('success');
+        }
+    });
+
+    telefonoInput.addEventListener('blur', function() {
+        if (this.value.length < 7) {
+            telefonoWrapper.classList.add('error');
+            telefonoWrapper.classList.remove('success');
+        } else {
+            telefonoWrapper.classList.remove('error');
+            telefonoWrapper.classList.add('success');
+        }
+    });
+
+    estadoInput.addEventListener('change', function() {
+        if (!this.value) {
+            estadoWrapper.classList.add('error');
+            estadoWrapper.classList.remove('success');
+        } else {
+            estadoWrapper.classList.remove('error');
+            estadoWrapper.classList.add('success');
+        }
+    });
+
+    direccionInput.addEventListener('blur', function() {
+        if (this.value.length < 5) {
+            direccionWrapper.classList.add('error');
+            direccionWrapper.classList.remove('success');
+        } else {
+            direccionWrapper.classList.remove('error');
+            direccionWrapper.classList.add('success');
+        }
+    });
+
+    passwordInput.addEventListener('blur', function() {
+        if (this.value.length < 6) {
+            passwordWrapper.classList.add('error');
+            passwordWrapper.classList.remove('success');
+        } else {
+            passwordWrapper.classList.remove('error');
+            passwordWrapper.classList.add('success');
+        }
+    });
+
+    confirmInput.addEventListener('blur', function() {
+        if (this.value !== passwordInput.value || this.value.length < 6) {
+            confirmWrapper.classList.add('error');
+            confirmWrapper.classList.remove('success');
+        } else {
+            confirmWrapper.classList.remove('error');
+            confirmWrapper.classList.add('success');
+        }
+    });
+
+    // Form Submit con Validación
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+
+        // Validar todos los campos
+        if (nombreInput.value.length < 3) {
+            nombreWrapper.classList.add('error');
+            isValid = false;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value)) {
+            emailWrapper.classList.add('error');
+            isValid = false;
+        }
+
+        if (telefonoInput.value.length < 7) {
+            telefonoWrapper.classList.add('error');
+            isValid = false;
+        }
+
+        if (!estadoInput.value) {
+            estadoWrapper.classList.add('error');
+            isValid = false;
+        }
+
+        if (direccionInput.value.length < 5) {
+            direccionWrapper.classList.add('error');
+            isValid = false;
+        }
+
+        if (passwordInput.value.length < 6) {
+            passwordWrapper.classList.add('error');
+            isValid = false;
+        }
+
+        if (confirmInput.value !== passwordInput.value) {
+            confirmWrapper.classList.add('error');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            // Scroll al primer error
+            const firstError = document.querySelector('.input-wrapper.error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return false;
+        }
+
+        // Mostrar loading
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        loadingOverlay.classList.add('active');
+    });
+
+    // Auto-cerrar flash messages después de 5 segundos
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert-ebano');
+        alerts.forEach(function(alert) {
+            alert.style.animation = 'slideOutRight 0.4s ease-out';
+            setTimeout(() => alert.remove(), 400);
+        });
+    }, 5000);
+});
+
+// Animación de salida para alerts
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideOutRight {
+        to {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
 {% endblock %}
