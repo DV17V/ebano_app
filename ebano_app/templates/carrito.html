@@ -2,66 +2,124 @@
 {% block title %}Mi Carrito | Ébano{% endblock %}
 
 {% block content %}
-<section class="carrito">
-    <h1 class="titulo-carrito">Mi Carrito</h1>
+<div class="carrito-page">
+    <div class="container py-5">
+        <h1 class="page-title text-center mb-4">
+            <i class="bi bi-cart3"></i> Mi Carrito
+        </h1>
 
-    <!-- ========================================
-         BLOQUE DE MENSAJES FLASH (NUEVO)
-    ========================================= -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-messages">
-          {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-    <!-- ======================================== -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages mb-4">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
 
-    {% if carrito and carrito|length > 0 %}
+        {% if carrito and carrito|length > 0 %}
 
-        <form method="POST" action="{{ url_for('carrito') }}">
-            <div class="carrito-items">
-
-                {% for item in carrito %}
-                <div class="item-carrito">
-
-                    {% if item.imagen_url %}
-                        <img src="{{ url_for('static', filename=item.imagen_url) }}" alt="{{ item.nombre }}">
-                    {% else %}
-                        <img src="{{ url_for('static', filename='img/default.png') }}" alt="{{ item.nombre }}">
-                    {% endif %}
-
-                    <div class="info-carrito">
-                        <h2>{{ item.nombre }}</h2>
-
-                        <p>Precio unitario: {{ item.precio|usd }}</p>
-
-                        <label for="qty_{{ item.id }}">Cantidad:</label>
-                        <input type="number" name="qty_{{ item.id }}" min="1" value="{{ item.cantidad }}" class="input-cantidad">
-
-                        <p>Subtotal: {{ (item.precio * item.cantidad)|usd }}</p>
+            <form method="POST" action="{{ url_for('carrito') }}">
+                <div class="row g-4">
+                    <div class="col-lg-8">
+                        <div class="carrito-items">
+                            {% for item in carrito %}
+                            <div class="carrito-item">
+                                <div class="row align-items-center g-3">
+                                    <div class="col-md-2 col-3">
+                                        <div class="item-imagen">
+                                            {% if item.imagen_url %}
+                                                <img src="{{ url_for('static', filename=item.imagen_url) }}" alt="{{ item.nombre }}" class="img-fluid rounded">
+                                            {% else %}
+                                                <img src="{{ url_for('static', filename='img/default.png') }}" alt="{{ item.nombre }}" class="img-fluid rounded">
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4 col-9">
+                                        <h5 class="item-nombre mb-2">{{ item.nombre }}</h5>
+                                        <p class="item-precio mb-0">{{ item.precio|usd }}</p>
+                                    </div>
+                                    
+                                    <div class="col-md-3 col-6">
+                                        <label class="form-label small mb-1">Cantidad:</label>
+                                        <input type="number" name="qty_{{ item.id }}" min="1" value="{{ item.cantidad }}" class="form-control">
+                                    </div>
+                                    
+                                    <div class="col-md-3 col-6 text-end">
+                                        <small class="text-muted d-block mb-1">Subtotal:</small>
+                                        <p class="item-subtotal mb-0">{{ (item.precio * item.cantidad)|usd }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="carrito-acciones mt-4">
+                            <button type="submit" class="btn btn-ebano">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar carrito
+                            </button>
+                            <a href="{{ url_for('vaciar_carrito') }}" class="btn btn-outline-danger">
+                                <i class="bi bi-trash"></i> Vaciar carrito
+                            </a>
+                            <a href="{{ url_for('tienda') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Seguir comprando
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="carrito-resumen">
+                            <h4 class="resumen-titulo">
+                                <i class="bi bi-receipt"></i> Resumen del pedido
+                            </h4>
+                            <hr>
+                            <div class="resumen-linea">
+                                <span>Subtotal:</span>
+                                <span class="fw-bold">{{ total|usd }}</span>
+                            </div>
+                            <div class="resumen-linea">
+                                <span>Envío:</span>
+                                <span class="text-success">
+                                    <i class="bi bi-truck"></i> Gratis
+                                </span>
+                            </div>
+                            <hr>
+                            <div class="resumen-total">
+                                <span>Total:</span>
+                                <span>{{ total|usd }}</span>
+                            </div>
+                            
+                            <div class="resumen-acciones">
+                                <a href="{{ url_for('checkout') }}" class="btn btn-ebano btn-lg w-100 mb-3">
+                                    <i class="bi bi-credit-card"></i> Proceder al pago
+                                </a>
+                                <div class="text-center">
+                                    <small class="text-muted">
+                                        <i class="bi bi-shield-check"></i> Pago seguro
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                {% endfor %}
+            </form>
 
+        {% else %}
+            <div class="carrito-vacio text-center py-5">
+                <i class="bi bi-cart-x display-1 text-muted mb-4"></i>
+                <h3 class="mb-3">Tu carrito está vacío</h3>
+                <p class="text-muted mb-4">Agrega algunos productos de nuestra tienda</p>
+                <a href="{{ url_for('tienda') }}" class="btn btn-ebano btn-lg">
+                    <i class="bi bi-shop"></i> Ir a la tienda
+                </a>
             </div>
+        {% endif %}
 
-            <button type="submit" class="btn-artesanal">Actualizar carrito</button>
-        </form>
-
-        <div class="carrito-total">
-            <h3>Total: {{ total|usd }}</h3>
-
-            <a href="{{ url_for('checkout') }}" class="btn-artesanal">Proceder al pago</a>
-            <a href="{{ url_for('vaciar_carrito') }}" class="boton-volver">Vaciar carrito</a>
-            <a href="{{ url_for('tienda') }}" class="boton-volver">← Volver a la tienda</a>
-        </div>
-
-    {% else %}
-        <p class="carrito-vacio">Tu carrito está vacío.</p>
-    {% endif %}
-
-</section>
+    </div>
+</div>
 {% endblock %}

@@ -2,40 +2,131 @@
 {% block title %}Confirmar pedido | Ébano{% endblock %}
 
 {% block content %}
-<section class="checkout">
-  <div class="checkout-container">
-    <h1>Confirmar tu pedido</h1>
-    <p>Revisa los productos antes de finalizar la compra.</p>
+<div class="checkout-page">
+  <div class="container py-5">
+    <div class="checkout-container">
+      
+      <div class="checkout-header text-center mb-5">
+        <h1 class="checkout-title">
+          <i class="bi bi-credit-card"></i> Confirmar tu pedido
+        </h1>
+        <p class="checkout-subtitle">Revisa los productos antes de finalizar la compra</p>
+      </div>
 
-    <table class="tabla-checkout">
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>Cantidad</th>
-          <th>Precio unitario</th>
-          <th>Subtotal</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in carrito %}
-        <tr>
-          <td>{{ item.nombre }}</td>
-          <td>{{ item.cantidad }}</td>
-          <td>{{ item.precio|usd }}</td>
-          <td>{{ (item.precio * item.cantidad)|usd }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-messages mb-4">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
 
-    <div class="total-checkout">
-      <h2>Total: {{ total|usd }}</h2>
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="productos-checkout">
+            <h4 class="seccion-titulo mb-4">
+              <i class="bi bi-bag-check"></i> Productos en tu pedido
+            </h4>
+            
+            <div class="table-responsive">
+              <table class="tabla-checkout">
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-end">Precio unitario</th>
+                    <th class="text-end">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in carrito %}
+                  <tr>
+                    <td>
+                      <div class="producto-info-checkout">
+                        <div class="producto-imagen-mini">
+                          {% if item.imagen_url %}
+                            <img src="{{ url_for('static', filename=item.imagen_url) }}" alt="{{ item.nombre }}">
+                          {% else %}
+                            <img src="{{ url_for('static', filename='img/default.png') }}" alt="{{ item.nombre }}">
+                          {% endif %}
+                        </div>
+                        <span class="producto-nombre-checkout">{{ item.nombre }}</span>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-secondary">{{ item.cantidad }}</span>
+                    </td>
+                    <td class="text-end">{{ item.precio|usd }}</td>
+                    <td class="text-end fw-bold">{{ (item.precio * item.cantidad)|usd }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="resumen-checkout">
+            <h4 class="resumen-titulo">
+              <i class="bi bi-receipt"></i> Resumen del pedido
+            </h4>
+            <hr>
+            
+            <div class="resumen-detalle">
+              <div class="resumen-linea">
+                <span>Subtotal:</span>
+                <span>{{ total|usd }}</span>
+              </div>
+              <div class="resumen-linea">
+                <span>Envío:</span>
+                <span class="text-success">
+                  <i class="bi bi-truck"></i> Gratis
+                </span>
+              </div>
+              <div class="resumen-linea">
+                <span>Impuestos:</span>
+                <span class="text-muted">Incluidos</span>
+              </div>
+            </div>
+            
+            <hr>
+            
+            <div class="resumen-total">
+              <span>Total a pagar:</span>
+              <span>{{ total|usd }}</span>
+            </div>
+
+            <div class="info-envio">
+              <p class="mb-2">
+                <i class="bi bi-check-circle text-success"></i> Envío gratuito a todo EE.UU.
+              </p>
+              <p class="mb-2">
+                <i class="bi bi-shield-check text-success"></i> Pago 100% seguro
+              </p>
+              <p class="mb-0">
+                <i class="bi bi-arrow-return-left text-success"></i> Devolución en 30 días
+              </p>
+            </div>
+
+            <form method="POST" class="mt-4">
+              <button type="submit" class="btn btn-ebano btn-lg w-100 mb-3">
+                <i class="bi bi-check-circle"></i> Confirmar compra
+              </button>
+              <a href="{{ url_for('carrito') }}" class="btn btn-outline-secondary w-100">
+                <i class="bi bi-arrow-left"></i> Volver al carrito
+              </a>
+            </form>
+          </div>
+        </div>
+      </div>
+
     </div>
-
-    <form method="POST">
-      <button type="submit" class="btn-artesanal">Confirmar compra</button>
-      <a href="{{ url_for('carrito') }}" class="boton-volver">← Volver al carrito</a>
-    </form>
   </div>
-</section>
+</div>
 {% endblock %}

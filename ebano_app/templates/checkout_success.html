@@ -2,12 +2,65 @@
 {% block title %}Compra completada | Ébano{% endblock %}
 
 {% block content %}
-<section class="checkout-success">
-  <div class="success-container">
-    <h1>¡Gracias por tu compra!</h1>
-    <p>Tu pedido ha sido registrado con éxito. Pronto recibirás una notificación.</p>
-    <a href="{{ url_for('tienda') }}" class="btn-artesanal">Volver a la tienda</a>
-    <a href="{{ url_for('historial') }}" class="boton-usuario">Ver historial de pedidos</a>
-  </div>
-</section>
+<div class="checkout-success-page">
+    <div class="container py-5">
+        <div class="success-container">
+            <div class="success-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            
+            <h1 class="success-title">¡Gracias por tu compra!</h1>
+            <p class="success-subtitle">Tu pedido ha sido registrado exitosamente</p>
+            
+            <div class="success-message">
+                <i class="bi bi-info-circle"></i>
+                <p>Pronto recibirás una confirmación en tu correo electrónico con los detalles de tu pedido y el seguimiento de envío.</p>
+            </div>
+            
+            <div class="success-info">
+                <div class="info-item">
+                    <i class="bi bi-truck"></i>
+                    <div>
+                        <strong>Envío gratis</strong>
+                        <p>Tu pedido será enviado sin costo adicional</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-shield-check"></i>
+                    <div>
+                        <strong>Compra segura</strong>
+                        <p>Transacción protegida y verificada</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-clock-history"></i>
+                    <div>
+                        <strong>Seguimiento</strong>
+                        <p>Podrás rastrear tu pedido en tiempo real</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="success-actions">
+                <a href="{{ url_for('pedidos') }}" class="btn btn-ebano btn-lg">
+                    <i class="bi bi-bag-check"></i> Ver mis pedidos
+                </a>
+                <a href="{{ url_for('historial') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-clock-history"></i> Ver historial
+                </a>
+                <a href="{{ url_for('tienda') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-shop"></i> Seguir comprando
+                </a>
+            </div>
+            
+            <div class="success-footer">
+                <p class="text-muted">
+                    <i class="bi bi-envelope"></i> 
+                    ¿Necesitas ayuda? Contáctanos en 
+                    <a href="mailto:contacto@ebano.com">contacto@ebano.com</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
