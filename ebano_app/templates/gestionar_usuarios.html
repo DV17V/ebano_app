@@ -2,59 +2,368 @@
 
 {% block title %}Gestionar Usuarios | Ébano{% endblock %}
 
-{% block content %}
-<section class="gestionar-usuarios-seccion">
-    <div class="gestionar-usuarios-container">
-        <h1 class="titulo-gestionar">Gestionar Usuarios - Clientes Registrados</h1>
+{% block extra_head %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+<style>
+.admin-usuarios-page {
+    background: linear-gradient(135deg, #fdf7f2 0%, #f5ebe1 100%);
+    min-height: 100vh;
+    padding: 3rem 2rem;
+}
 
-        <!-- Mostrar mensajes flash -->
+.admin-header {
+    background: linear-gradient(135deg, var(--vino-oscuro) 0%, var(--vino-medio) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(75, 30, 36, 0.2);
+}
+
+.admin-header h1 {
+    font-family: var(--fuente-titulo);
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+}
+
+/* Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-left: 4px solid var(--dorado);
+    transition: var(--transicion-suave);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.stat-card i {
+    font-size: 2rem;
+    color: var(--dorado);
+    margin-bottom: 0.5rem;
+}
+
+.stat-card h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--vino-oscuro);
+    margin: 0.5rem 0;
+}
+
+.stat-card p {
+    color: #666;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Table Container */
+.table-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.table-header h2 {
+    color: var(--vino-oscuro);
+    font-family: var(--fuente-titulo);
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+/* DataTables Custom */
+.table-modern {
+    width: 100% !important;
+}
+
+.table-modern thead {
+    background: linear-gradient(135deg, var(--vino-oscuro) 0%, var(--vino-medio) 100%);
+}
+
+.table-modern thead th {
+    color: white !important;
+    background-color: #3d1108;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    padding: 1rem 0.8rem !important;
+    border: none !important;
+}
+
+.table-modern thead th:first-child {
+    border-radius: 12px 0 0 0;
+}
+
+.table-modern thead th:last-child {
+    border-radius: 0 12px 0 0;
+}
+
+.table-modern tbody tr {
+    transition: var(--transicion-suave);
+    border-bottom: 1px solid #f5f2ef;
+}
+
+.table-modern tbody tr:hover {
+    background-color: #fdfaf7;
+}
+
+.table-modern tbody td {
+    padding: 1rem 0.8rem !important;
+    vertical-align: middle;
+}
+
+/* Usuario Avatar */
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--dorado) 0%, var(--vino-claro) 100%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+/* Badge Verificado */
+.badge-verificado {
+    background: #d4edda;
+    color: #155724;
+    padding: 0.3rem 0.7rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-usuarios-page {
+        padding: 1.5rem 1rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-usuarios-page">
+    <div class="container-fluid">
+        
+        <!-- Admin Header -->
+        <div class="admin-header">
+            <h1>👥 Gestión de Clientes</h1>
+            <p>Base de datos de clientes registrados en Ébano</p>
+        </div>
+
+        <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
-            <div class="flash-messages">
+            <div class="flash-messages mb-4">
               {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                  <strong>
+                    {% if category == 'success' %}✅{% elif category == 'danger' %}❌{% else %}ℹ️{% endif %}
+                  </strong>
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
               {% endfor %}
             </div>
           {% endif %}
         {% endwith %}
 
-        {% if usuarios and usuarios|length > 0 %}
-        <div class="seccion-usuarios-admin">
-            <p class="total-usuarios">Total de clientes: <strong>{{ usuarios|length }}</strong></p>
-            <table class="tabla-usuarios-admin">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Usuario</th>
-                        <th>Nombre Completo</th>
-                        <th>Correo</th>
-                        <th>Teléfono</th>
-                        <th>Dirección</th>
-                        <th>Fecha Registro</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for u in usuarios %}
-                    <tr>
-                        <td>{{ u.id }}</td>
-                        <td>{{ u.nombre_usuario }}</td>
-                        <td>{{ u.nombre_completo }}</td>
-                        <td>{{ u.correo }}</td>
-                        <td>{{ u.telefono }}</td>
-                        <td>{{ u.direccion }}</td>
-                        <td>{{ u.fecha_registro.strftime('%d/%m/%Y %H:%M') if u.fecha_registro else 'N/A' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="bi bi-people"></i>
+                <h3>{{ usuarios|length }}</h3>
+                <p>Clientes Totales</p>
+            </div>
+            <div class="stat-card">
+                <i class="bi bi-calendar-check"></i>
+                <h3>{{ usuarios|selectattr('fecha_registro', 'defined')|list|length }}</h3>
+                <p>Con Registro Completo</p>
+            </div>
+            <div class="stat-card">
+                <i class="bi bi-geo-alt"></i>
+                <h3>{{ usuarios|selectattr('direccion', 'defined')|selectattr('direccion', 'ne', 'No registrada')|list|length }}</h3>
+                <p>Con Dirección Válida</p>
+            </div>
         </div>
-        {% else %}
-        <p class="sin-usuarios">No hay clientes registrados.</p>
-        {% endif %}
 
-        <div class="form-acciones">
-            <a href="{{ url_for('dashboard_admin') }}" class="boton-secundario">Volver al Panel</a>
+        <!-- Table Container -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>📋 Lista de Clientes</h2>
+                <div class="table-actions">
+                    <a href="{{ url_for('dashboard_admin') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+
+            {% if usuarios and usuarios|length > 0 %}
+            <div class="table-responsive">
+                <table id="usuariosTable" class="table table-modern">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Estado (US)</th>
+                            <th>Dirección</th>
+                            <th>Fecha Registro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios %}
+                        <tr>
+                            <td><strong>#{{ u.id }}</strong></td>
+                            <td>
+                                <div class="user-info">
+                                    <div class="user-avatar">
+                                        {{ u.nombre_completo[0]|upper if u.nombre_completo else 'U' }}
+                                    </div>
+                                    <div>
+                                        <strong>{{ u.nombre_completo }}</strong><br>
+                                        <small class="text-muted">@{{ u.nombre_usuario }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <i class="bi bi-envelope"></i> {{ u.correo }}
+                            </td>
+                            <td>
+                                {% if u.telefono %}
+                                    <i class="bi bi-phone"></i> {{ u.telefono }}
+                                {% else %}
+                                    <span class="text-muted">Sin teléfono</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.estado %}
+                                    <span class="badge-verificado">🇺🇸 {{ u.estado }}</span>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.direccion and u.direccion != 'No registrada' %}
+                                    <small>{{ u.direccion[:40] }}{% if u.direccion|length > 40 %}...{% endif %}</small>
+                                {% else %}
+                                    <span class="text-muted">Sin dirección</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.fecha_registro %}
+                                    {{ u.fecha_registro.strftime('%d/%m/%Y') }}<br>
+                                    <small class="text-muted">{{ u.fecha_registro.strftime('%H:%M') }}</small>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-people" style="font-size: 4rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">No hay clientes registrados.</p>
+            </div>
+            {% endif %}
         </div>
+
     </div>
-</section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#usuariosTable').DataTable({
+        // Idioma español
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+        },
+        
+        // Configuración
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        order: [[6, 'desc']], // Ordenar por fecha de registro (más recientes primero)
+        
+        // Botones de exportación
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>B',
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: '<i class="bi bi-file-earmark-excel"></i> Exportar Excel',
+                className: 'btn btn-success btn-sm',
+                title: 'Clientes_Ebano_' + new Date().toISOString().slice(0,10),
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6]
+                }
+            },
+            {
+                extend: 'csvHtml5',
+                text: '<i class="bi bi-file-earmark-text"></i> Exportar CSV',
+                className: 'btn btn-info btn-sm',
+                title: 'Clientes_Ebano_' + new Date().toISOString().slice(0,10),
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6]
+                }
+            }
+        ],
+        
+        responsive: true,
+        
+        initComplete: function() {
+            console.log('✅ Tabla de usuarios inicializada');
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -2,63 +2,444 @@
 
 {% block title %}Gestionar Productos | Ébano{% endblock %}
 
-{% block content %}
-<section class="gestionar-productos-seccion">
-    <div class="gestionar-productos-container">
-        <h1 class="titulo-gestionar">Gestionar Productos - Inventario</h1>
+{% block extra_head %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+<style>
+.admin-productos-page {
+    background: linear-gradient(135deg, #fdf7f2 0%, #f5ebe1 100%);
+    min-height: 100vh;
+    padding: 3rem 2rem;
+}
 
-        <!-- Mostrar mensajes flash -->
+.admin-header {
+    background: linear-gradient(135deg, var(--vino-oscuro) 0%, var(--vino-medio) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(75, 30, 36, 0.2);
+}
+
+.admin-header h1 {
+    font-family: var(--fuente-titulo);
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: 1px;
+}
+
+.admin-header p {
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-left: 4px solid var(--dorado);
+    transition: var(--transicion-suave);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.stat-card i {
+    font-size: 2rem;
+    color: var(--dorado);
+    margin-bottom: 0.5rem;
+}
+
+.stat-card h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--vino-oscuro);
+    margin: 0.5rem 0;
+}
+
+.stat-card p {
+    color: #666;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Table Container */
+.table-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.table-header h2 {
+    color: var(--vino-oscuro);
+    font-family: var(--fuente-titulo);
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.table-actions {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+/* DataTables Custom Styles */
+.dataTables_wrapper {
+    padding: 0 !important;
+}
+
+.table-modern {
+    width: 100% !important;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-modern thead {
+    background: linear-gradient(135deg, var(--vino-oscuro) 0%, var(--vino-medio) 100%);
+}
+
+.table-modern thead th {
+    color: white !important;
+    background-color: #3d1108;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.8rem !important;
+    border: none !important;
+}
+
+.table-modern thead th:first-child {
+    border-radius: 12px 0 0 0;
+}
+
+.table-modern thead th:last-child {
+    border-radius: 0 12px 0 0;
+}
+
+.table-modern tbody tr {
+    transition: var(--transicion-suave);
+    border-bottom: 1px solid #f5f2ef;
+}
+
+.table-modern tbody tr:hover {
+    background-color: #fdfaf7;
+    transform: scale(1.01);
+}
+
+.table-modern tbody td {
+    padding: 1rem 0.8rem !important;
+    vertical-align: middle;
+}
+
+/* Inline Edit Form */
+.form-inline-producto {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.input-mini {
+    padding: 0.5rem 0.6rem;
+    border: 2px solid #e6ded6;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    width: 100px;
+    text-align: center;
+    transition: var(--transicion-suave);
+}
+
+.input-mini:focus {
+    outline: none;
+    border-color: var(--dorado);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.btn-guardar {
+    background: linear-gradient(135deg, #28a745 0%, #20893a 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transicion-suave);
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+}
+
+.btn-guardar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+}
+
+/* Badge Stock */
+.badge-stock {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-stock.alto {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-stock.medio {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-stock.bajo {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-productos-page {
+        padding: 1.5rem 1rem;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .table-actions {
+        justify-content: stretch;
+    }
+    
+    .table-actions .btn {
+        flex: 1;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-productos-page">
+    <div class="container-fluid">
+        
+        <!-- Admin Header -->
+        <div class="admin-header">
+            <h1>📦 Gestión de Inventario</h1>
+            <p>Administra los productos, precios y stock de Ébano</p>
+        </div>
+
+        <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
-            <div class="flash-messages">
+            <div class="flash-messages mb-4">
               {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                  <strong>
+                    {% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+                  </strong>
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
               {% endfor %}
             </div>
           {% endif %}
         {% endwith %}
 
-        {% if productos and productos|length > 0 %}
-        <div class="seccion-productos-admin">
-            <table class="tabla-productos-admin">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Precio (COP)</th>
-                        <th>Stock</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in productos %}
-                    <tr>
-                        <td>{{ p.id }}</td>
-                        <td>{{ p.nombre }}</td>
-                        <td>
-                            <form method="post" action="{{ url_for('gestionar_productos') }}" class="form-inline-producto">
-                                <input type="hidden" name="producto_id" value="{{ p.id }}">
-                                <input type="number" name="precio" value="{{ p.precio }}" step="0.01" class="input-mini" title="Precio COP">
-                                <input type="number" name="stock" value="{{ p.stock }}" class="input-mini" title="Stock" required>
-                                <button type="submit" class="boton-mini">Guardar</button>
-                            </form>
-                        </td>
-                        <td></td>
-                        <td>
-                            <a href="#" class="boton-mini eliminar">Eliminar</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="bi bi-box-seam"></i>
+                <h3>{{ productos|length }}</h3>
+                <p>Productos Totales</p>
+            </div>
+            <div class="stat-card">
+                <i class="bi bi-check-circle"></i>
+                <h3>{{ productos|selectattr('stock', 'gt', 0)|list|length }}</h3>
+                <p>Con Stock Disponible</p>
+            </div>
+            <div class="stat-card">
+                <i class="bi bi-exclamation-triangle"></i>
+                <h3>{{ productos|selectattr('stock', 'le', 5)|list|length }}</h3>
+                <p>Stock Bajo (≤5)</p>
+            </div>
+            <div class="stat-card">
+                <i class="bi bi-x-circle"></i>
+                <h3>{{ productos|selectattr('stock', 'eq', 0)|list|length }}</h3>
+                <p>Sin Stock</p>
+            </div>
         </div>
-        {% else %}
-        <p class="sin-productos">No hay productos registrados.</p>
-        {% endif %}
 
-        <div class="form-acciones">
-            <a href="{{ url_for('dashboard_admin') }}" class="boton-secundario">Volver al Panel</a>
+        <!-- Table Container -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>📋 Inventario de Productos</h2>
+                <div class="table-actions">
+                    <a href="{{ url_for('dashboard_admin') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al Panel
+                    </a>
+                </div>
+            </div>
+
+            {% if productos and productos|length > 0 %}
+            <div class="table-responsive">
+                <table id="productosTable" class="table table-modern">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Precio (COP)</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in productos %}
+                        <tr>
+                            <td><strong>#{{ p.id }}</strong></td>
+                            <td>{{ p.nombre }}</td>
+                            <td>
+                                <strong style="color: var(--vino-oscuro);">
+                                    ${{ "{:,.0f}".format(p.precio).replace(",", ".") }} COP
+                                </strong>
+                            </td>
+                            <td>{{ p.stock }}</td>
+                            <td>
+                                {% if p.stock > 10 %}
+                                    <span class="badge-stock alto">✅ Stock Alto</span>
+                                {% elif p.stock > 5 %}
+                                    <span class="badge-stock medio">⚠️ Stock Medio</span>
+                                {% elif p.stock > 0 %}
+                                    <span class="badge-stock bajo">🔴 Stock Bajo</span>
+                                {% else %}
+                                    <span class="badge-stock bajo">❌ Agotado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post" action="{{ url_for('gestionar_productos') }}" class="form-inline-producto">
+                                    <input type="hidden" name="producto_id" value="{{ p.id }}">
+                                    <input 
+                                        type="number" 
+                                        name="precio" 
+                                        value="{{ p.precio }}" 
+                                        step="1" 
+                                        class="input-mini" 
+                                        placeholder="Precio"
+                                        title="Precio en COP"
+                                    >
+                                    <input 
+                                        type="number" 
+                                        name="stock" 
+                                        value="{{ p.stock }}" 
+                                        class="input-mini" 
+                                        placeholder="Stock" 
+                                        required
+                                        title="Cantidad en stock"
+                                    >
+                                    <button type="submit" class="btn-guardar">
+                                        <i class="bi bi-save"></i> Guardar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">No hay productos registrados en el sistema.</p>
+            </div>
+            {% endif %}
         </div>
+
     </div>
-</section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#productosTable').DataTable({
+        // Idioma en español
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+        },
+        
+        // Opciones de visualización
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        
+        // Ordenamiento por defecto (por ID)
+        order: [[0, 'asc']],
+        
+        // Botones de exportación
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>B',
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: '<i class="bi bi-file-earmark-excel"></i> Exportar Excel',
+                className: 'btn btn-success btn-sm',
+                title: 'Inventario_Ebano_' + new Date().toISOString().slice(0,10),
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4] // Excluir columna de acciones
+                }
+            },
+            {
+                extend: 'csvHtml5',
+                text: '<i class="bi bi-file-earmark-text"></i> Exportar CSV',
+                className: 'btn btn-info btn-sm',
+                title: 'Inventario_Ebano_' + new Date().toISOString().slice(0,10),
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4]
+                }
+            }
+        ],
+        
+        // Responsivo
+        responsive: true,
+        
+        // Animaciones
+        initComplete: function() {
+            console.log('✅ DataTable inicializado correctamente');
+        }
+    });
+    
+    console.log('🎯 Gestión de Productos cargada');
+});
+</script>
 {% endblock %}
