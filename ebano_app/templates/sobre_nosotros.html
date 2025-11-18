@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}Sobre Nosotros | Ébano{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section sin carousel -->
+<section class="hero-sobre-nosotros page-background" style="background-image: url('{{ url_for('static', filename='img/santuario.jpg') }}');">
+    <div class="hero-overlay"></div>
+    <div class="container">
+        <div class="hero-content-sobre">
+            <span class="hero-badge">Proyecto Universitario</span>
+            <h1 class="hero-title">Sobre Nosotros</h1>
+            <p class="hero-subtitle">Alliance for Business Intelligence</p>
+            <div class="hero-scroll-indicator">
+                <i class="bi bi-chevron-down"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sección: El Proyecto -->
+<section class="seccion-proyecto">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="proyecto-imagen">
+                    <img src="{{ url_for('static', filename='img/hero/slide1.jpg') }}" alt="Proyecto Ébano" class="img-fluid rounded-4 shadow-lg">
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="proyecto-contenido">
+                    <span class="proyecto-etiqueta">
+                        <i class="bi bi-mortarboard-fill"></i> Universidad de Nariño
+                    </span>
+                    <h2 class="proyecto-titulo">Un Proyecto Interdisciplinario</h2>
+                    <p class="proyecto-texto">
+                        <strong>Ébano</strong> nace como un proyecto colaborativo entre estudiantes de tres programas académicos de la Universidad de Nariño:
+                    </p>
+                    <ul class="proyecto-lista">
+                        <li>
+                            <i class="bi bi-briefcase-fill"></i>
+                            <div>
+                                <strong>Administración de Empresas</strong>
+                                <p>Estrategia de negocio y gestión empresarial</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="bi bi-globe-americas"></i>
+                            <div>
+                                <strong>Comercio Internacional</strong>
+                                <p>Expansión de mercados y logística global</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="bi bi-code-slash"></i>
+                            <div>
+                                <strong>Ingeniería de Sistemas</strong>
+                                <p>Desarrollo tecnológico e innovación digital</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sección: Sobre Ébano -->
+<section class="seccion-ebano">
+    <div class="container">
+        <div class="row align-items-center g-5 flex-lg-row-reverse">
+            <div class="col-lg-6">
+                <div class="ebano-imagen">
+                    <img src="{{ url_for('static', filename='img/hero/slide2.jpg') }}" alt="Vino Ébano" class="img-fluid rounded-4 shadow-lg">
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="ebano-contenido">
+                    <span class="ebano-etiqueta">
+                        <i class="bi bi-award-fill"></i> Producto Artesanal
+                    </span>
+                    <h2 class="ebano-titulo">¿Qué es Ébano?</h2>
+                    <p class="ebano-texto">
+                        <strong>Ébano</strong> es un vino artesanal <strong>sin alcohol</strong>, elaborado con moras cuidadosamente seleccionadas de las tierras altas de Nariño, Colombia. Nuestro producto representa:
+                    </p>
+                    <div class="ebano-caracteristicas">
+                        <div class="caracteristica-item">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span><strong>Autenticidad:</strong> 100% natural y artesanal</span>
+                        </div>
+                        <div class="caracteristica-item">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span><strong>Calidad:</strong> Ingredientes premium locales</span>
+                        </div>
+                        <div class="caracteristica-item">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span><strong>Tradición:</strong> Elaboración artesanal centenaria</span>
+                        </div>
+                        <div class="caracteristica-item">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span><strong>Innovación:</strong> Sin alcohol, sin comprometer sabor</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sección: La Plataforma -->
+<section class="seccion-plataforma">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="plataforma-etiqueta">
+                <i class="bi bi-laptop"></i> Plataforma Digital
+            </span>
+            <h2 class="plataforma-titulo">Alliance for Business Intelligence</h2>
+            <p class="plataforma-subtitulo">Una solución tecnológica integral para el comercio electrónico</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="plataforma-card">
+                    <div class="plataforma-icon">
+                        <i class="bi bi-cart-check-fill"></i>
+                    </div>
+                    <h3>E-Commerce Completo</h3>
+                    <p>Tienda en línea con carrito de compras, gestión de pedidos y pasarela de pagos integrada para experiencias de compra fluidas.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="plataforma-card">
+                    <div class="plataforma-icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h3>Business Intelligence</h3>
+                    <p>Dashboard analítico en tiempo real con métricas clave de ventas, inventario y comportamiento del cliente usando Metabase.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="plataforma-card">
+                    <div class="plataforma-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h3>Seguridad & Escalabilidad</h3>
+                    <p>Arquitectura robusta con autenticación segura, rate limiting y diseño preparado para crecimiento internacional.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="plataforma-card">
+                    <div class="plataforma-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h3>Gestión de Usuarios</h3>
+                    <p>Sistema completo de registro, autenticación y perfiles personalizados con historial de compras y reseñas.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="plataforma-card">
+                    <div class="plataforma-icon">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <h3>Gestión de Inventario</h3>
+                    <p>Control de stock en tiempo real, actualización automática de disponibilidad y alertas de productos agotados.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="plataforma-card">
+                    <div class="plataforma-icon">
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <h3>Sistema de Reseñas</h3>
+                    <p>Calificaciones y comentarios de clientes para construir confianza y mejorar continuamente la experiencia.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sección: Stack Tecnológico -->
+<section class="seccion-tecnologias">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="tech-etiqueta">
+                <i class="bi bi-cpu-fill"></i> Stack Tecnológico
+            </span>
+            <h2 class="tech-titulo">Tecnologías Implementadas</h2>
+            <p class="tech-subtitulo">Herramientas modernas para una solución empresarial completa</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="tech-badge">
+                    <i class="bi bi-code-square"></i>
+                    <span>Python & Flask</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="tech-badge">
+                    <i class="bi bi-database-fill"></i>
+                    <span>PostgreSQL</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="tech-badge">
+                    <i class="bi bi-bootstrap-fill"></i>
+                    <span>Bootstrap 5</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="tech-badge">
+                    <i class="bi bi-bar-chart-fill"></i>
+                    <span>Metabase</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="tech-badge">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>Flask-Login</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="tech-badge">
+                    <i class="bi bi-currency-dollar"></i>
+                    <span>Currency API</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="tech-badge">
+                    <i class="bi bi-git"></i>
+                    <span>Git & GitHub</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="tech-badge">
+                    <i class="bi bi-cloud-upload"></i>
+                    <span>Render Deploy</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="seccion-cta">
+    <div class="container">
+        <div class="cta-card">
+            <div class="cta-content">
+                <h2 class="cta-titulo">¿Quieres conocer más sobre nuestro proyecto?</h2>
+                <p class="cta-texto">Explora nuestra tienda y descubre el sabor auténtico de Nariño</p>
+            </div>
+            <div class="cta-actions">
+                <a href="{{ url_for('tienda') }}" class="btn-cta-primary">
+                    <i class="bi bi-shop"></i> Visitar Tienda
+                </a>
+                <a href="{{ url_for('index') }}" class="btn-cta-secondary">
+                    <i class="bi bi-house-door"></i> Volver al Inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

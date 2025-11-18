@@ -2153,6 +2153,10 @@ def internal_server_error(e):
     print(f"❌ Error 500: {e}")
     return render_template('404.html'), 500  # Reutiliza 404.html por ahora
 
+@app.route("/sobre-nosotros")
+def sobre_nosotros():
+    return render_template("sobre_nosotros.html")
+
 # ------------------------------------------------------------
 # MAIN
 # ------------------------------------------------------------

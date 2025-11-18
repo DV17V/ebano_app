@@ -172,7 +172,7 @@
 }
 </style>
 
-    <main style="padding-top: 70px;">
+    <main style="padding-top: 70px; min-height: calc(100vh - 70px);">
         {% block content %}{% endblock %}
     </main>
 
@@ -197,7 +197,7 @@
                     <ul class="footer-links">
                         <li><a href="{{ url_for('index') }}">Inicio</a></li>
                         <li><a href="{{ url_for('tienda') }}">Tienda</a></li>
-                        <li><a href="#">Sobre Nosotros</a></li>
+                        <li><a href="{{ url_for('sobre_nosotros') }}">Sobre Nosotros</a></li>
                         <li><a href="#">Blog</a></li>
                     </ul>
                 </div>
